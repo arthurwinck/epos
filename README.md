@@ -3,7 +3,7 @@
 ### Changes
 
 - It uses the fixes from  [Eric's EPOS help repo](https://github.com/ErFer7/INE5424-help)
-- It can be used with Caio's dockepos fork
+- It uses the docker container [Caio's dockepos](https://github.com/caiopo/dockepos)
 
 # EPOS
 
