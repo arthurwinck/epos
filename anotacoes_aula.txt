@@ -12,4 +12,4 @@
 
 A cada iteração calculamos o slack time para restaurar o timer
 
-// É só ver a diferença do elapsed pro períododaksdçlasdadaçdkadkaçlsdkasdçl
+// É só ver a diferença do elapsed pro período
