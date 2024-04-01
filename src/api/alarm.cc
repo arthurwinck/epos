@@ -4,6 +4,7 @@
 #include <synchronizer.h>
 #include <time.h>
 #include <process.h>
+#include <time.h>
 
 __BEGIN_SYS
 
@@ -72,7 +73,9 @@ void Alarm::period(const Microsecond & p)
         unlock();
 }
 
-
+// Base das thread periodicas da llf
+// Cada job de uma espera períodica espera um v
+// Uma thread periodica tem um alarm handler que dispara um v a cada periodo. Quando executa, dispara um p
 void Alarm::delay(const Microsecond & time)
 {
     db<Alarm>(TRC) << "Alarm::delay(time=" << time << ")" << endl;

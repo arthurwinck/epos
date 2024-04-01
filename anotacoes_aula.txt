@@ -1,0 +1,15 @@
+// Thread::init
+// Devemos ter uma solução forte para que no thread::init() tenhamos certeza que main e idle sejam criados antes de qualquer interrupcao
+// new no Thread::init invoca o construtor do objeto
+// new (endereço do hardware) - (objeto)
+// diferença do kmalloc -> lib diferente (vamos fazer um alocador parecido com c++)
+// inline nao joga o construtor em algum endereço de memoria, isso é metaprogramação
+
+
+// Eu quero sempre executar aquela thread que tem menos tempo pra executar até o deadline (o objetivo e nao perder nenhum deadline)
+
+// Calcular folga no dispatch dentro do if de (charge)
+
+A cada iteração calculamos o slack time para restaurar o timer
+
+// É só ver a diferença do elapsed pro períododaksdçlasdadaçdkadkaçlsdkasdçl

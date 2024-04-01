@@ -201,7 +201,7 @@ public:
     static const bool dynamic = true;
     static const bool preemptive = true;
 
-public:
+public: 
     EDF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
     EDF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
 

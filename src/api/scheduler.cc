@@ -9,7 +9,8 @@ __BEGIN_SYS
 template <typename ... Tn>
 FCFS::FCFS(int p, Tn & ... an): Priority((p == IDLE) ? IDLE : Alarm::elapsed()) {}
 
-EDF::EDF(const Microsecond & d, const Microsecond & p, const Microsecond & c, unsigned int): Real_Time_Scheduler_Common(Alarm::ticks(d), Alarm::ticks(d), p, c) {}
+EDF::EDF(const Microsecond & d, const Microsecond & p, const Microsecond & c, unsigned int): 
+    Real_Time_Scheduler_Common(Alarm::ticks(d), Alarm::ticks(d), p, c) {}
 
 void EDF::update() {
     if((_priority >= PERIODIC) && (_priority < APERIODIC))
