@@ -208,6 +208,27 @@ public:
     void update();
 };
 
+// Least Laxity First
+class LLF: public Real_Time_Scheduler_Common
+{
+public:
+    static const bool timed = true;
+    static const bool dynamic = true;
+    static const bool preemptive = true;
+
+public: 
+    // Construtor para tarefa aperiódica
+    LLF(int p = APERIODIC);
+
+    // Construtor para tarefa periódica ou com prazo determinado
+    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
+
+    // Atualiza a prioridade da tarefa com base no seu slack time
+    void update();
+};
+
+
+
 __END_SYS
 
 #endif

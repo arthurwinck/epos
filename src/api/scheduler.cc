@@ -17,6 +17,23 @@ void EDF::update() {
         _priority = Alarm::elapsed() + _deadline;
 }
 
+// Construtor para tarefa aperiódica
+LLF::LLF(int p) : Real_Time_Scheduler_Common(p) {}
+
+// Construtor para tarefa periódica ou com prazo determinado
+LLF::LLF(const Microsecond & d, const Microsecond & p, const Microsecond & c, unsigned int cpu)
+: Real_Time_Scheduler_Common(Alarm::ticks(p ? p : d), d, p, c) {}
+
+// Atualiza a prioridade da tarefa com base no seu slack time
+void LLF::update() {
+    if ((_priority >= PERIODIC) && (_priority < APERIODIC)) {
+        // Calcula o slack time: tempo restante até o deadline menos a capacidade restante de execução
+        auto slack_time = (Alarm::ticks(_deadline) - Alarm::elapsed()) - _capacity;
+        // Atualiza a prioridade baseada no slack time
+        _priority = static_cast<int>(slack_time);
+    }
+}
+
 // Since the definition of FCFS above is only known to this unit, forcing its instantiation here so it gets emitted in scheduler.o for subsequent linking with other units is necessary.
 template FCFS::FCFS<>(int p);
 

@@ -379,5 +379,61 @@ int Thread::idle()
 
     return 0;
 }
+// --------------> IDEIA DO QUE DEVE SER FEITO PARA MUDAR A PRIORIDADE DURANTE O TEMPO <------------
+
+// Implementação da atualização dinâmica de prioridades no EPOS usando Least Laxity First (LLF)
+
+// Método para recalcular a prioridade de uma thread baseado no LLF. Este método deve ser invocado 
+// sempre que houver uma mudança significativa na execução da thread que possa afetar sua laxidade,
+// como ao ser criada, ao terminar uma execução, ou periodicamente por um mecanismo de temporização.
+// void Thread::update_priority() {
+//     lock();
+
+//     // A laxidade é calculada como o tempo restante até o deadline menos o tempo de computação restante.
+//     // Esta implementação depende de cada thread ter acesso ao seu próprio deadline e capacidade restante.
+//     auto laxidade = (Alarm::ticks(_deadline) - Alarm::elapsed()) - _capacity;
+
+//     // A nova prioridade é calculada com base na laxidade. Quanto menor a laxidade, maior a prioridade.
+//     int new_priority = laxidade_to_priority(laxidade);
+
+//     // Atualiza a prioridade da thread no escalonador.
+//     _link.rank(new_priority);
+
+//     unlock();
+// }
+
+// // Mapeia a laxidade para um valor de prioridade. Implementações podem variar dependendo das especificações
+// // de prioridade do sistema. Laxidades menores devem resultar em prioridades maiores.
+// int Thread::laxidade_to_priority(int laxidade) {
+//     // Exemplo simples de mapeamento: inversamente proporcional à laxidade.
+//     return MAX_PRIORITY - laxidade;
+// }
+
+// // Método para atualizar a prioridade de todas as threads ativas. Deve ser chamado periodicamente por um
+// // timer ou interrupção para assegurar que as threads reflitam a urgência atual de sua execução.
+// void Thread::update_all_priorities() {
+//     lock();
+
+//     // Itera sobre todas as threads no escalonador e atualiza suas prioridades.
+//     for(auto thread : _scheduler) {
+//         thread->update_priority();
+//     }
+
+//     unlock();
+// }
+
+// // Inicializa o mecanismo que irá invocar update_all_priorities() em intervalos regulares.
+// // Este método deve ser chamado durante a inicialização do sistema.
+// void Thread::init_priority_update_mechanism() {
+//     // Configura um timer ou interrupção para chamar update_all_priorities() periodicamente.
+// }
+
+// // Exemplo de como chamar init_priority_update_mechanism() dentro da inicialização do sistema.
+// // Isso garante que o mecanismo de atualização de prioridade esteja ativo desde o início.
+// void System::initialize() {
+//     // Inicializações anteriores...
+//     Thread::init_priority_update_mechanism();
+//     // Continuação da inicialização...
+// }
 
 __END_SYS
