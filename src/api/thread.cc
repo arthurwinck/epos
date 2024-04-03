@@ -99,7 +99,7 @@ void Thread::priority(const Criterion & c)
 
     if(_state != RUNNING) { // reorder the scheduling queue
         _scheduler.remove(this);
-        _link.rank(c);
+        _link.rank(Criterion(c));
         _scheduler.insert(this);
     } else
         _link.rank(c);
@@ -134,7 +134,7 @@ int Thread::join()
 
         dispatch(prev, next);
     }
-
+    priority(this->criterion());
     unlock();
 
     return *reinterpret_cast<int *>(_stack);
@@ -379,5 +379,6 @@ int Thread::idle()
 
     return 0;
 }
+
 
 __END_SYS
