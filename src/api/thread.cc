@@ -20,6 +20,7 @@ void Thread::constructor_prologue(unsigned int stack_size)
     _scheduler.insert(this);
 
     _stack = new (SYSTEM) char[stack_size];
+    
 }
 
 
@@ -38,7 +39,8 @@ void Thread::constructor_epilogue(Log_Addr entry, unsigned int stack_size)
     if((_state != READY) && (_state != RUNNING))
         _scheduler.suspend(this);
 
-    if(preemptive && (_state == READY) && (_link.rank() != IDLE))
+    // ADD UPC DA THREAD QUE ATUALIZA PRIORIDADES
+    if(preemptive && (_state == READY) && (_link.rank() != IDLE) && (_link.rank() != UPC))
         reschedule();
 
     unlock();
@@ -99,10 +101,10 @@ void Thread::priority(const Criterion & c)
 
     if(_state != RUNNING) { // reorder the scheduling queue
         _scheduler.remove(this);
-        _link.rank(c);
+        _link.rank(Criterion(c));
         _scheduler.insert(this);
     } else
-        _link.rank(c);
+        _link.rank(Criterion(c));
 
     if(preemptive)
         reschedule();
@@ -379,5 +381,32 @@ int Thread::idle()
 
     return 0;
 }
+
+void Thread::periodic_update() {
+    // CHAMAR UM ALARM ?
+    db<Thread>(TRC) << "Thread::periodic_update(this=" << running() << ")" << endl;
+   
+    // Lista temporária deve ser do tipo correto para armazenar elementos da fila
+    List<Queue::Element*> temp_list;
+
+    // Remove todas as threads do escalonador e coloca na lista temporária
+    while (!_scheduler.empty()) {
+        Thread* thread = _scheduler.remove(_scheduler.chosen());
+        if (thread) {
+            thread->criterion().update();
+            // POR QUE NAO POSSO INSERIR A MERDA DE UMA THREAD AQUI CARA
+            temp_list.insert_head(thread->link());
+        }
+    }
+
+    // Reinsere todas as threads de volta no escalonador com as novas prioridades
+    while (!temp_list.empty()) {
+        Queue::Element* element = temp_list.remove_head(); // Remove o elemento da cabeça
+        _scheduler.insert(element->object()); // Reinsere a thread no escalonador
+        // FORMAR DE USAR COUT AQUI
+        db<Thread>(ERR) << "mensagem";
+    }
+}
+
 
 __END_SYS

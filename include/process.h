@@ -51,7 +51,8 @@ public:
         NORMAL  = Criterion::NORMAL,
         LOW     = Criterion::LOW,
         MAIN    = Criterion::MAIN,
-        IDLE    = Criterion::IDLE
+        IDLE    = Criterion::IDLE,
+        UPC     = Criterion::UPC
     };
 
     // Thread Queue
@@ -85,6 +86,8 @@ public:
     void pass();
     void suspend();
     void resume();
+    // TEMPORARIO SO PRA TESTAR
+    static void periodic_update();
 
     static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
     static void yield();

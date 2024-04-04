@@ -30,7 +30,9 @@ public:
         HIGH   = 0,
         NORMAL = (unsigned(1) << (sizeof(int) * 8 - 2)) - 1,
         LOW    = (unsigned(1) << (sizeof(int) * 8 - 1)) - 2,
-        IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1
+        IDLE   = (unsigned(1) << (sizeof(int) * 8 - 1)) - 1,
+        // NOVA PRIORIDADE REVISAR VALOR
+        UPC    = (unsigned(1) << (sizeof(int) * 8 - 1)) - 3
     };
 
     // Constructor helpers
@@ -204,6 +206,21 @@ public:
 public: 
     EDF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
     EDF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
+
+    void update();
+};
+
+// Least Laxity First
+class LLF: public Real_Time_Scheduler_Common
+{
+public:
+    static const bool timed = true;
+    static const bool dynamic = true;
+    static const bool preemptive = true;
+
+public: 
+    LLF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {};
+    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
 
     void update();
 };

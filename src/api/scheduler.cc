@@ -17,6 +17,17 @@ void EDF::update() {
         _priority = Alarm::elapsed() + _deadline;
 }
 
+//Arrumar construtor ta bugadao
+// LLF: Least Laxity First
+LLF::LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY):
+    Real_Time_Scheduler_Common(Alarm::ticks(d), Alarm::ticks(p), c) {}
+
+void LLF::update() {
+    if((_priority >= PERIODIC) && (_priority < APERIODIC))
+        _priority = (_deadline - Alarm::elapsed()) - _capacity;
+}
+
+
 // Since the definition of FCFS above is only known to this unit, forcing its instantiation here so it gets emitted in scheduler.o for subsequent linking with other units is necessary.
 template FCFS::FCFS<>(int p);
 

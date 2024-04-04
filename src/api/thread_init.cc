@@ -26,6 +26,9 @@ void Thread::init()
     // Idle thread creation does not cause rescheduling (see Thread::constructor_epilogue)
     new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
 
+    // AQUI VAI COLOCAR UMA THREAD NA QUELE METODO
+    new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::UPC), &Thread::periodic_update);
+
     // The installation of the scheduler timer handler does not need to be done after the
     // creation of threads, since the constructor won't call reschedule() which won't call
     // dispatch that could call timer->reset()
