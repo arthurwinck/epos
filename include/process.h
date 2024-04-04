@@ -25,6 +25,7 @@ class Thread
 
 protected:
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
+    static const bool aging = Traits<Thread>::Criterion::aging;
     static const bool reboot = Traits<System>::reboot;
 
     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
@@ -89,6 +90,8 @@ public:
     static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
     static void yield();
     static void exit(int status = 0);
+
+    static void periodic_update();
 
 protected:
     void constructor_prologue(unsigned int stack_size);

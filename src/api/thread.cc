@@ -99,10 +99,10 @@ void Thread::priority(const Criterion & c)
 
     if(_state != RUNNING) { // reorder the scheduling queue
         _scheduler.remove(this);
-        _link.rank(c);
+        _link.rank(Criterion(c));
         _scheduler.insert(this);
     } else
-        _link.rank(c);
+        _link.rank(Criterion(c));
 
     if(preemptive)
         reschedule();
@@ -135,6 +135,9 @@ int Thread::join()
         dispatch(prev, next);
     }
 
+    if (aging)
+        periodic_update();
+
     unlock();
 
     return *reinterpret_cast<int *>(_stack);
@@ -155,6 +158,9 @@ void Thread::pass()
     else
         db<Thread>(WRN) << "Thread::pass => thread (" << this << ") not ready!" << endl;
 
+    if (aging)
+        periodic_update();
+
     unlock();
 }
 
@@ -173,6 +179,9 @@ void Thread::suspend()
     Thread * next = _scheduler.chosen();
 
     dispatch(prev, next);
+
+    if (aging)
+        periodic_update();
 
     unlock();
 }
@@ -193,6 +202,9 @@ void Thread::resume()
     } else
         db<Thread>(WRN) << "Resume called for unsuspended object!" << endl;
 
+    if (aging)
+        periodic_update();
+
     unlock();
 }
 
@@ -207,6 +219,9 @@ void Thread::yield()
     Thread * next = _scheduler.choose_another();
 
     dispatch(prev, next);
+
+    if (aging)
+        periodic_update();
 
     unlock();
 }
@@ -235,6 +250,9 @@ void Thread::exit(int status)
 
     dispatch(prev, next);
 
+    if (aging)
+        periodic_update();
+ 
     unlock();
 }
 
@@ -252,6 +270,9 @@ void Thread::sleep(Queue * q)
     q->insert(&prev->_link);
 
     Thread * next = _scheduler.chosen();
+
+    if (aging)
+        periodic_update();
 
     dispatch(prev, next);
 }
@@ -272,6 +293,9 @@ void Thread::wakeup(Queue * q)
         if(preemptive)
             reschedule();
     }
+
+    if (aging)
+        periodic_update();
 }
 
 
@@ -292,6 +316,9 @@ void Thread::wakeup_all(Queue * q)
         if(preemptive)
             reschedule();
     }
+
+    if (aging)
+        periodic_update();
 }
 
 
@@ -306,6 +333,9 @@ void Thread::reschedule()
     Thread * next = _scheduler.choose();
 
     dispatch(prev, next);
+
+    if (aging)
+        periodic_update();
 }
 
 
@@ -378,6 +408,16 @@ int Thread::idle()
     for(;;);
 
     return 0;
+}
+
+void Thread::periodic_update() {
+    assert(locked());
+    // COMO CHAMAR ESSE METODO PRA REORDENAR A LISTA DE THREADS
+    // COMO GARANTIR QUE ELE NAO TA PEGANDO A MESMA THREADS 
+    for (size_t i = 0; i < _scheduler.size(); i++) {
+        Thread * teste = _scheduler.choose_another();
+        teste->priority(teste->criterion().update());
+    }
 }
 
 __END_SYS

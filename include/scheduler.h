@@ -52,6 +52,7 @@ public:
     static const bool timed = false;
     static const bool dynamic = false;
     static const bool preemptive = true;
+    static const bool aging = false;
     static const bool collecting = false;
     static const bool charging = false;
     static const bool awarding = false;
@@ -127,6 +128,7 @@ public:
     static const bool timed = true;
     static const bool dynamic = false;
     static const bool preemptive = true;
+    static const bool aging = false;
 
 public:
     template <typename ... Tn>
@@ -140,6 +142,7 @@ public:
     static const bool timed = false;
     static const bool dynamic = false;
     static const bool preemptive = false;
+    static const bool aging = false;
 
 public:
     template <typename ... Tn>
@@ -172,7 +175,8 @@ public:
     static const bool timed = false;
     static const bool dynamic = false;
     static const bool preemptive = true;
-
+    static const bool aging = false;
+    
 public:
     RM(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
     RM(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY)
@@ -200,10 +204,29 @@ public:
     static const bool timed = true;
     static const bool dynamic = true;
     static const bool preemptive = true;
+    static const bool aging = false;
 
 public: 
     EDF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
     EDF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
+
+    void update();
+};
+
+// Least Laxity First
+class LLF: public Real_Time_Scheduler_Common
+{
+public:
+    static const bool timed = true;
+    static const bool dynamic = true;
+    static const bool preemptive = true;
+
+    static const bool aging = true;
+
+public:
+    // Revisar construtor
+    LLF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {};
+    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
 
     void update();
 };
