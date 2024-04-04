@@ -400,6 +400,7 @@ void Thread::periodic_update() {
     lock();
     // COMO CHAMAR ESSE METODO PRA REORDENAR A LISTA DE THREADS
     // COMO GARANTIR QUE ELE NAO TA PEGANDO A MESMA THREADS 
+    // ele nao pode selecionar si mesmo resolta em um deadlock tem que analisar melhor esse metodo se vamos ir por esse lado
     for (size_t i = 0; i < _scheduler.size(); i++) {
         Thread * teste = _scheduler.choose_another();
         teste->criterion().update();
