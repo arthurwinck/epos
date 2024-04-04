@@ -158,8 +158,6 @@ void Thread::pass()
     else
         db<Thread>(WRN) << "Thread::pass => thread (" << this << ") not ready!" << endl;
 
-    if (aging)
-        periodic_update();
 
     unlock();
 }
@@ -180,8 +178,6 @@ void Thread::suspend()
 
     dispatch(prev, next);
 
-    if (aging)
-        periodic_update();
 
     unlock();
 }
@@ -202,8 +198,6 @@ void Thread::resume()
     } else
         db<Thread>(WRN) << "Resume called for unsuspended object!" << endl;
 
-    if (aging)
-        periodic_update();
 
     unlock();
 }
@@ -271,8 +265,6 @@ void Thread::sleep(Queue * q)
 
     Thread * next = _scheduler.chosen();
 
-    if (aging)
-        periodic_update();
 
     dispatch(prev, next);
 }
@@ -293,9 +285,6 @@ void Thread::wakeup(Queue * q)
         if(preemptive)
             reschedule();
     }
-
-    if (aging)
-        periodic_update();
 }
 
 
@@ -316,9 +305,6 @@ void Thread::wakeup_all(Queue * q)
         if(preemptive)
             reschedule();
     }
-
-    if (aging)
-        periodic_update();
 }
 
 
@@ -333,9 +319,6 @@ void Thread::reschedule()
     Thread * next = _scheduler.choose();
 
     dispatch(prev, next);
-
-    if (aging)
-        periodic_update();
 }
 
 
@@ -411,13 +394,15 @@ int Thread::idle()
 }
 
 void Thread::periodic_update() {
-    assert(locked());
+    lock();
     // COMO CHAMAR ESSE METODO PRA REORDENAR A LISTA DE THREADS
     // COMO GARANTIR QUE ELE NAO TA PEGANDO A MESMA THREADS 
     for (size_t i = 0; i < _scheduler.size(); i++) {
         Thread * teste = _scheduler.choose_another();
-        teste->priority(teste->criterion().update());
+        teste->criterion().update();
+        teste->priority(teste->_link.rank());
     }
+    unlock();
 }
 
 __END_SYS
