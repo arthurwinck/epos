@@ -316,17 +316,17 @@ void Thread::time_slicer(IC::Interrupt_Id i)
     lock();
     if (Criterion::laxity) {
         db<Thread>(TRC) << "Thread::laxity" << endl;
-        
-        // Assumindo um máximo de MAX_THREADS threads.
+
         Thread* threads[_thread_count];
         int priorities[_thread_count];
         int count = 0;
 
         for(auto it = _scheduler.begin(); (it != _scheduler.end()); ++it) {
             Thread* thread = it->object();
-
+            db<Thread>(ERR) << thread->priority() << " PRIORIDADE ANTERIOR" << endl;
             thread->criterion().update();
             int newPriority = thread->priority();
+            db<Thread>(ERR) << thread->priority() << " PRIORIDADE NOVA" << endl;
             threads[count] = thread;
             priorities[count] = newPriority;
             count++;
@@ -352,7 +352,7 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
             if (Criterion::laxity) {
                 // algo assim ??? agendar um novo timer para a thread? 
                 // _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
-                _timer->restart();//temporario
+                _timer->restart();
             } else {
                 _timer->restart();
             }
