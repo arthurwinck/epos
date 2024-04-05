@@ -362,7 +362,8 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
             if (Criterion::laxity) {
                 // algo assim ??? agendar um novo timer para a thread? 
                 // _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
-                _timer->restart();
+                // deve setar novo current? com a folga
+                _timer->_current = folga
             } else {
                 _timer->restart();
             }
