@@ -363,13 +363,15 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
                 // algo assim ??? agendar um novo timer para a thread? 
                 // _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
                 // deve setar novo current? com a folga
-                _timer->_current = folga
+                // _timer->_current = next->criterion()._deadline - (_timer->_current + next->criterion()._capacity)
+                _timer->restart_laxity(next->criterion()._deadline, next->criterion()._capacity);
             } else {
                 _timer->restart();
             }
         }
             
     }
+
 
     if(prev != next) {
         if(prev->_state == RUNNING)

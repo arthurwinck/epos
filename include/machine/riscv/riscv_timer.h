@@ -67,6 +67,12 @@ public:
         return percentage;
     }
 
+    void restart_laxity(Microsecond deadline, Microsecond capacity) {
+        db<Timer>(TRC) << "Timer::start_laxity()" << endl;
+
+        _current = deadline - (capacity - _current);
+    }
+
     static void reset() { config(FREQUENCY); }
     static void enable() {}
     static void disable() {}

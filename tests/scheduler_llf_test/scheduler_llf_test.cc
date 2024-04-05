@@ -63,30 +63,28 @@ int main()
     thread_b = new Periodic_Thread(RTConf(period_b * 1000, period_b * 1000, period_b * 500, 0, iterations), &func_b);
     thread_c = new Periodic_Thread(RTConf(period_c * 1000, period_c * 1000, period_c * 500, 0, iterations), &func_c);
 
-    cout << "\n_capacity "<<thread_a->criterion()._capacity << "deadline " << thread_a->criterion()._deadline << endl;
+    exec('M');
 
-    // exec('M');
+    chrono.start();
 
-    // chrono.start();
+    int status_a = thread_a->join();
+    int status_b = thread_b->join();
+    int status_c = thread_c->join();
 
-    // int status_a = thread_a->join();
-    // int status_b = thread_b->join();
-    // int status_c = thread_c->join();
+    chrono.stop();
 
-    // chrono.stop();
+    exec('M');
 
-    // exec('M');
+    cout << "\n... done!" << endl;
+    cout << "\n\nThread A exited with status \"" << char(status_a)
+         << "\", thread B exited with status \"" << char(status_b)
+         << "\" and thread C exited with status \"" << char(status_c) << "." << endl;
 
-    // cout << "\n... done!" << endl;
-    // cout << "\n\nThread A exited with status \"" << char(status_a)
-    //      << "\", thread B exited with status \"" << char(status_b)
-    //      << "\" and thread C exited with status \"" << char(status_c) << "." << endl;
+    cout << "\nThe estimated time to run the test was "
+         << max(period_a, period_b, period_c) * iterations
+         << " ms. The measured time was " << chrono.read() / 1000 <<" ms!" << endl;
 
-    // cout << "\nThe estimated time to run the test was "
-    //      << max(period_a, period_b, period_c) * iterations
-    //      << " ms. The measured time was " << chrono.read() / 1000 <<" ms!" << endl;
-
-    // cout << "I'm also done, bye!" << endl;
+    cout << "I'm also done, bye!" << endl;
 
     return 0;
 }
