@@ -405,9 +405,11 @@ void Thread::periodic_update() {
     for (size_t i = 0; i < _scheduler.size(); i++) {
         Thread * teste = _scheduler.choose_another();
         teste->criterion().update();
-        if (teste->_link.rank() != RUNNING)
+        if (teste->_link.rank() != RUNNING) {
             db<Thread>(ERR) << teste->_link.rank() + "<- RANK <------------------------------------\n";
             teste->priority(teste->_link.rank());
+        }
+           
     }
     unlock();
 }
