@@ -31,7 +31,7 @@ ia32_PREFIX	:= /usr/bin/x86_64-linux-gnu-
 armv7_PREFIX	:= /usr/bin/arm-none-eabi-
 armv8_PREFIX	:= /usr/bin/aarch64-linux-gnu-
 rv32_PREFIX	:= /usr/bin/riscv64-linux-gnu-
-rv64_PREFIX 	:= $(shell pwd)/../rv64_toolchain-gcc_13.2.0/riscv/bin/riscv64-unknown-linux-gnu-
+rv64_PREFIX := $(shell pwd)/../riscv/bin/riscv64-unknown-linux-gnu-
 
 # Make basic commands
 DD              = dd
@@ -195,5 +195,16 @@ dist: veryclean
 		sed -e 's/^\/\//#/' $(ETC)/license.txt > $(ETC)/license.as
 		find $(TOP) -name "*.S" -print | xargs sed -i "1r $(ETC)/license.txt.as"
 		$(CLEAN) $(ETC)/license.as
+
+run_scheduler_llf_test: link_scheduler_llf_test build_scheduler_llf_test run_scheduler_llf_test_only
+
+link_scheduler_llf_test:
+		$(LINK) $(TST)/scheduler_llf_test $(APP);
+
+build_scheduler_llf_test:
+		$(MAKE) APPLICATION=scheduler_llf_test clean1 all1
+
+run_scheduler_llf_test_only:
+		$(MAKE) APPLICATION=scheduler_llf_test run1
 
 FORCE:

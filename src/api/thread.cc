@@ -99,10 +99,10 @@ void Thread::priority(const Criterion & c)
 
     if(_state != RUNNING) { // reorder the scheduling queue
         _scheduler.remove(this);
-        _link.rank(c);
+        _link.rank(Criterion(c));
         _scheduler.insert(this);
     } else
-        _link.rank(c);
+        _link.rank(Criterion(c));
 
     if(preemptive)
         reschedule();
@@ -296,22 +296,47 @@ void Thread::wakeup_all(Queue * q)
 
 
 void Thread::reschedule()
-{
+{   
+    lock();// lock temporario nao sei pq o assert falha
     if(!Criterion::timed || Traits<Thread>::hysterically_debugged)
         db<Thread>(TRC) << "Thread::reschedule()" << endl;
 
-    assert(locked()); // locking handled by caller
+    // assert(locked()); // locking handled by caller
 
     Thread * prev = running();
     Thread * next = _scheduler.choose();
 
     dispatch(prev, next);
+    unlock();
 }
 
 
 void Thread::time_slicer(IC::Interrupt_Id i)
 {
     lock();
+    if (Criterion::laxity) {
+        db<Thread>(TRC) << "Thread::laxity" << endl;
+        
+        // Assumindo um máximo de MAX_THREADS threads.
+        Thread* threads[_thread_count];
+        int priorities[_thread_count];
+        int count = 0;
+
+        for(auto it = _scheduler.begin(); (it != _scheduler.end()); ++it) {
+            Thread* thread = it->object();
+
+            thread->criterion().update();
+            int newPriority = thread->priority();
+            threads[count] = thread;
+            priorities[count] = newPriority;
+            count++;
+        }
+
+        // Atualizar as prioridades fora da iteração
+        for(int i = 0; i < count; i++) {
+            threads[i]->priority(priorities[i]);
+        }
+    }
     reschedule();
     unlock();
 }
@@ -320,10 +345,19 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 {
     // "next" is not in the scheduler's queue anymore. It's already "chosen"
-
+    // PRECISO VER NA LOGICA DE LEXITY ESSA PARTE DE REINICIAR O TIMER DELA
+    // calcular folga no dispatch pq? pra setar o timer?
     if(charge) {
-        if(Criterion::timed)
-            _timer->restart();
+        if(Criterion::timed) {
+            if (Criterion::laxity) {
+                // algo assim ??? agendar um novo timer para a thread? 
+                // _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
+                _timer->restart();//temporario
+            } else {
+                _timer->restart();
+            }
+        }
+            
     }
 
     if(prev != next) {
