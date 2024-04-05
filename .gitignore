@@ -1,9 +1,0 @@
-# Ignorar arquivos de imagem
-*.jpg
-*.png
-*.gif
-*.bmp
-*.svg
-
-# Ignorar arquivos objeto compilados
-*.o
