@@ -59,32 +59,34 @@ int main()
     cout << "Threads will now be created and I'll wait for them to finish..." << endl;
 
     // p,d,c,act,t
-    thread_a = new Periodic_Thread(RTConf(period_a * 1000, 0, 0, 0, iterations), &func_a);
-    thread_b = new Periodic_Thread(RTConf(period_b * 1000, 0, 0, 0, iterations), &func_b);
-    thread_c = new Periodic_Thread(RTConf(period_c * 1000, 0, 0, 0, iterations), &func_c);
+    thread_a = new Periodic_Thread(RTConf(period_a * 1000, period_a * 1000, period_a * 500, 0, iterations), &func_a);
+    thread_b = new Periodic_Thread(RTConf(period_b * 1000, period_b * 1000, period_b * 500, 0, iterations), &func_b);
+    thread_c = new Periodic_Thread(RTConf(period_c * 1000, period_c * 1000, period_c * 500, 0, iterations), &func_c);
 
-    exec('M');
+    cout << "\n_capacity "<<thread_a->criterion()._capacity << "deadline " << thread_a->criterion()._deadline << endl;
 
-    chrono.start();
+    // exec('M');
 
-    int status_a = thread_a->join();
-    int status_b = thread_b->join();
-    int status_c = thread_c->join();
+    // chrono.start();
 
-    chrono.stop();
+    // int status_a = thread_a->join();
+    // int status_b = thread_b->join();
+    // int status_c = thread_c->join();
 
-    exec('M');
+    // chrono.stop();
 
-    cout << "\n... done!" << endl;
-    cout << "\n\nThread A exited with status \"" << char(status_a)
-         << "\", thread B exited with status \"" << char(status_b)
-         << "\" and thread C exited with status \"" << char(status_c) << "." << endl;
+    // exec('M');
 
-    cout << "\nThe estimated time to run the test was "
-         << max(period_a, period_b, period_c) * iterations
-         << " ms. The measured time was " << chrono.read() / 1000 <<" ms!" << endl;
+    // cout << "\n... done!" << endl;
+    // cout << "\n\nThread A exited with status \"" << char(status_a)
+    //      << "\", thread B exited with status \"" << char(status_b)
+    //      << "\" and thread C exited with status \"" << char(status_c) << "." << endl;
 
-    cout << "I'm also done, bye!" << endl;
+    // cout << "\nThe estimated time to run the test was "
+    //      << max(period_a, period_b, period_c) * iterations
+    //      << " ms. The measured time was " << chrono.read() / 1000 <<" ms!" << endl;
+
+    // cout << "I'm also done, bye!" << endl;
 
     return 0;
 }

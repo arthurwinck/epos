@@ -6,6 +6,8 @@
 
 __BEGIN_SYS
 
+OStream cout;
+
 bool Thread::_not_booting;
 volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
@@ -323,19 +325,27 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 
         for(auto it = _scheduler.begin(); (it != _scheduler.end()); ++it) {
             Thread* thread = it->object();
-            db<Thread>(ERR) << thread->priority() << " PRIORIDADE ANTERIOR" << endl;
+            if (thread->criterion() != Thread::MAIN && thread->criterion() != Thread::IDLE) {
+
+            cout <<"\nPRIORIDADE ANTIGA " << thread->priority() << endl;
+
             thread->criterion().update();
             int newPriority = thread->priority();
-            db<Thread>(ERR) << thread->priority() << " PRIORIDADE NOVA" << endl;
+
+            cout <<"\nPRIORIDADE NOVA " << thread->priority() << endl;
+
             threads[count] = thread;
             priorities[count] = newPriority;
             count++;
+            }
         }
 
         // Atualizar as prioridades fora da iteração
         for(int i = 0; i < count; i++) {
+            cout <<"\nTHREAD SENDO ATUALIZADA"<< threads[i]->criterion() << endl;
             threads[i]->priority(priorities[i]);
         }
+       
     }
     reschedule();
     unlock();
