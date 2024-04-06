@@ -3,10 +3,9 @@
 #include <machine.h>
 #include <system.h>
 #include <process.h>
+#include <time.h>
 
 __BEGIN_SYS
-
-OStream cout;
 
 bool Thread::_not_booting;
 volatile unsigned int Thread::_thread_count;
@@ -299,6 +298,7 @@ void Thread::wakeup_all(Queue * q)
 
 void Thread::reschedule()
 {   
+    
     lock();// lock temporario nao sei pq o assert falha
     if(!Criterion::timed || Traits<Thread>::hysterically_debugged)
         db<Thread>(TRC) << "Thread::reschedule()" << endl;
@@ -307,7 +307,7 @@ void Thread::reschedule()
 
     Thread * prev = running();
     Thread * next = _scheduler.choose();
-
+    
     dispatch(prev, next);
     unlock();
 }
@@ -316,35 +316,28 @@ void Thread::reschedule()
 void Thread::time_slicer(IC::Interrupt_Id i)
 {
     lock();
-    cout <<"\ntime_slicer INVOCADO" << endl;
+    
     if (Criterion::laxity) {
-        cout <<"\nCriterion::laxity ATENDIDO" << endl;
-        db<Thread>(TRC) << "Thread::laxity" << endl;
-
         Thread* threads[_thread_count];
         int priorities[_thread_count];
         int count = 0;
 
         for(auto it = _scheduler.begin(); (it != _scheduler.end()); ++it) {
             Thread* thread = it->object();
-            if (thread->criterion() != Thread::MAIN && thread->criterion() != Thread::IDLE) {
+            
+            if (thread->_link.rank() != IDLE && thread->_link.rank() != MAIN) {
+                db<Thread>(WRN) << "\nUPDATE PRIORITY IN TIMER SLICER START" << endl;
+                thread->criterion().update();
+                int newPriority = thread->priority();
 
-            cout <<"\nPRIORIDADE ANTIGA " << thread->priority() << endl;
-
-            thread->criterion().update();
-            int newPriority = thread->priority();
-
-            cout <<"\nPRIORIDADE NOVA " << thread->priority() << endl;
-
-            threads[count] = thread;
-            priorities[count] = newPriority;
-            count++;
+                threads[count] = thread;
+                priorities[count] = newPriority;
+                count++;
             }
         }
 
         // Atualizar as prioridades fora da iteração
         for(int i = 0; i < count; i++) {
-            cout <<"\nTHREAD SENDO ATUALIZADA"<< threads[i]->criterion() << endl;
             threads[i]->priority(priorities[i]);
         }
        
@@ -356,24 +349,29 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 
 void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 {
+    // db<Thread>(WRN) << "\nnext->criterion() = " << next->criterion() << endl;
     // "next" is not in the scheduler's queue anymore. It's already "chosen"
-    // PRECISO VER NA LOGICA DE LEXITY ESSA PARTE DE REINICIAR O TIMER DELA
-    // calcular folga no dispatch pq? pra setar o timer?
     if(charge) {
-        if(Criterion::timed) {
+        if (Criterion::timed) {
             if (Criterion::laxity) {
-                // algo assim ??? agendar um novo timer para a thread? 
-                // _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
-                // deve setar novo current? com a folga
-                // _timer->_current = next->criterion()._deadline - (_timer->_current + next->criterion()._capacity)
-                _timer->restart_laxity(next->criterion()._deadline, next->criterion()._capacity);
+                // Verifica se a thread é a main ou a idle antes de aplicar a lógica específica de LLF
+                if (next->_link.rank() != IDLE && next->_link.rank() != MAIN) {
+                    db<Thread>(WRN) << "\nTHREAD NEXT DEADLINE = " << next->criterion()._deadline << endl;
+                    db<Thread>(WRN) << "\nTHREAD NEXT CAPACITY = " << next->criterion()._capacity << endl;
+                    // Aplica lógica de LLF somente se não for main ou idle
+
+                    db<Thread>(WRN) << "\nPROXIMO TIMER =" << (next->criterion()._deadline - Alarm::elapsed()) - next->criterion()._capacity << endl;
+
+                    _timer->restart_laxity(next->criterion()._deadline, next->criterion()._capacity, Alarm::elapsed());
+                } else {
+                    // Para main e idle, simplesmente reinicia o timer sem aplicar lógica de LLF
+                    _timer->restart();
+                }
             } else {
                 _timer->restart();
             }
         }
-            
     }
-
 
     if(prev != next) {
         if(prev->_state == RUNNING)

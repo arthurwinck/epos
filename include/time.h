@@ -36,6 +36,7 @@ class Alarm
     friend class FCFS;                          // for ticks() and elapsed()
     friend class EDF;                           // for ticks() and elapsed()
     friend class LLF;                           // for ticks() and elapsed()
+    friend class Thread;                        // for elapsed()
 
 private:
     typedef Timer_Common::Tick Tick;

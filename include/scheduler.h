@@ -232,8 +232,8 @@ public:
 public:
     // Revisar construtor
     LLF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
-    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
-
+    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY)
+        : Real_Time_Scheduler_Common(p ? p : d, d, p, c) {}
 
     void update();
 };

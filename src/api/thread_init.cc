@@ -34,7 +34,7 @@ void Thread::init()
     // has a lower priority)
     if(Criterion::timed)
         _timer = new (SYSTEM) Scheduler_Timer(QUANTUM, time_slicer);
-
+  
     // No more interrupts until we reach init_end
     CPU::int_disable();
 

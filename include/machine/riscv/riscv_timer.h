@@ -60,17 +60,15 @@ public:
 
     int restart() {
         db<Timer>(TRC) << "Timer::restart() => {f=" << frequency() << ",h=" << reinterpret_cast<void *>(_handler) << ",count=" << _current << "}" << endl;
-
         int percentage = _current * 100 / _initial;
         _current = _initial;
-
+        
         return percentage;
     }
 
-    void restart_laxity(Microsecond deadline, Microsecond capacity) {
+    void restart_laxity(Microsecond deadline, Microsecond capacity, Microsecond elapsed) {
         db<Timer>(TRC) << "Timer::start_laxity()" << endl;
-
-        _current = deadline - (capacity - _current);
+        _current = (deadline - elapsed) - capacity;
     }
 
     static void reset() { config(FREQUENCY); }
@@ -81,6 +79,8 @@ public:
     void frequency(Hertz f) { _initial = FREQUENCY / f; reset(); }
 
     void handler(const Handler & handler) { _handler = handler; }
+    //temporario
+    volatile Tick _current;
 
 private:
     static void config(const Hertz & frequency) { mtimecmp(mtime() + (CLOCK / frequency)); }
@@ -93,7 +93,7 @@ protected:
     unsigned int _channel;
     Tick _initial;
     bool _retrigger;
-    volatile Tick _current;
+    
     Handler _handler;
 
     static Timer * _channels[CHANNELS];
