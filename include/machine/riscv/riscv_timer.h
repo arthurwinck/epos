@@ -79,8 +79,6 @@ public:
     void frequency(Hertz f) { _initial = FREQUENCY / f; reset(); }
 
     void handler(const Handler & handler) { _handler = handler; }
-    //temporario
-    volatile Tick _current;
 
 private:
     static void config(const Hertz & frequency) { mtimecmp(mtime() + (CLOCK / frequency)); }
@@ -93,7 +91,7 @@ protected:
     unsigned int _channel;
     Tick _initial;
     bool _retrigger;
-    
+    volatile Tick _current;
     Handler _handler;
 
     static Timer * _channels[CHANNELS];
