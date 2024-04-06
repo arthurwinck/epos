@@ -60,9 +60,10 @@ public:
 
     int restart() {
         db<Timer>(TRC) << "Timer::restart() => {f=" << frequency() << ",h=" << reinterpret_cast<void *>(_handler) << ",count=" << _current << "}" << endl;
+        
         int percentage = _current * 100 / _initial;
         _current = _initial;
-        
+
         return percentage;
     }
 

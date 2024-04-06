@@ -195,7 +195,6 @@ public:
 
     static const bool laxity = false;
 
-
 public:
     DM(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
     DM(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY)
@@ -230,7 +229,6 @@ public:
     static const bool laxity = true;
 
 public:
-    // Revisar construtor
     LLF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
     LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY)
         : Real_Time_Scheduler_Common(p ? p : d, d, p, c) {}

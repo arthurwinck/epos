@@ -78,12 +78,11 @@ public:
     : Thread(Thread::Configuration(SUSPENDED, Criterion(p)), entry, an ...),
       _semaphore(0), _handler(&_semaphore, this), _alarm(p, &_handler, INFINITE) { resume(); }
 
-    // ele usa esse construtor aqui
     template<typename ... Tn>
     Periodic_Thread(const Configuration & conf, int (* entry)(Tn ...), Tn ... an)
     : Thread(Thread::Configuration(SUSPENDED, (conf.criterion != NORMAL) ? conf.criterion : Criterion(conf.period), conf.stack_size), entry, an ...),
       _semaphore(0), _handler(&_semaphore, this), _alarm(conf.period, &_handler, conf.times) {
-        // SETANDO NA MAO O QUE VEM DAS CONFIGS
+        // TODO: Contrutor nao seta _capacity, resolvido setando na mao
         this->criterion()._capacity = conf.capacity;
 
         if((conf.state == READY) || (conf.state == RUNNING)) {
@@ -106,7 +105,7 @@ public:
 
         return t->_alarm.times();
     }
-    
+
 protected:
     Semaphore _semaphore;
     Handler _handler;
