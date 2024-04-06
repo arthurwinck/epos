@@ -316,7 +316,9 @@ void Thread::reschedule()
 void Thread::time_slicer(IC::Interrupt_Id i)
 {
     lock();
+    cout <<"\ntime_slicer INVOCADO" << endl;
     if (Criterion::laxity) {
+        cout <<"\nCriterion::laxity ATENDIDO" << endl;
         db<Thread>(TRC) << "Thread::laxity" << endl;
 
         Thread* threads[_thread_count];

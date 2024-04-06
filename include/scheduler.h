@@ -232,11 +232,8 @@ public:
 public:
     // Revisar construtor
     LLF(int p = APERIODIC): Real_Time_Scheduler_Common(p) {}
-    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY)
-    //CONSTRUTOR CHEAGA COM AS COISAS ERRADAS! DA OVERRIDE NO PARAMETRO DA PERIODIC THREAD NO TESTE CRIADO
-    : Real_Time_Scheduler_Common(p ? p : d, d, p, c) {
-        db<Thread>(WRN) << "LLF::LLF: " << "D " << d << ", "<< "P " << p << ", " << "C "<< c << endl;
-    }
+    LLF(const Microsecond & d, const Microsecond & p = SAME, const Microsecond & c = UNKNOWN, unsigned int cpu = ANY);
+
 
     void update();
 };
