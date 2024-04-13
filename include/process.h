@@ -25,8 +25,6 @@ class Thread
 
 protected:
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
-    static const bool reboot = Traits<System>::reboot;
-
     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
     static const unsigned int STACK_SIZE = Traits<Application>::STACK_SIZE;
 
@@ -46,7 +44,6 @@ public:
     // Thread Scheduling Criterion
     typedef Traits<Thread>::Criterion Criterion;
     enum {
-        ISR     = Criterion::ISR,
         HIGH    = Criterion::HIGH,
         NORMAL  = Criterion::NORMAL,
         LOW     = Criterion::LOW,
@@ -86,7 +83,7 @@ public:
     void suspend();
     void resume();
 
-    static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
+    static Thread * volatile self() { return running(); }
     static void yield();
     static void exit(int status = 0);
 
@@ -125,7 +122,6 @@ protected:
     Thread * volatile _joining;
     Queue::Element _link;
 
-    static bool _not_booting;
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;

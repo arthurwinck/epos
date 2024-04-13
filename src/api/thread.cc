@@ -6,7 +6,8 @@
 
 __BEGIN_SYS
 
-bool Thread::_not_booting;
+extern OStream kout;
+
 volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;
@@ -364,18 +365,9 @@ int Thread::idle()
             yield();
     }
 
-    CPU::int_disable();
-    db<Thread>(WRN) << "The last thread has exited!" << endl;
-    if(reboot) {
-        db<Thread>(WRN) << "Rebooting the machine ..." << endl;
-        Machine::reboot();
-    } else {
-        db<Thread>(WRN) << "Halting the machine ..." << endl;
-        CPU::halt();
-    }
-
-    // Some machines will need a little time to actually reboot
-    for(;;);
+    kout << "\n\n*** The last thread under control of EPOS has finished." << endl;
+    kout << "*** EPOS is shutting down!" << endl;
+    Machine::reboot();
 
     return 0;
 }
