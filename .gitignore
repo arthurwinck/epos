@@ -1,0 +1,11 @@
+*.log
+*.img
+*.o
+*.out
+
+epos.cfg
+eposcc.cfg
+
+include/system/*.h
+
+tools/eposcc/
