@@ -43,7 +43,7 @@ int main()
     phil[2] = new Periodic_Thread(RTConf(period_base * 1.4, period_base * 1.4 * 0.9, period_base * 1.4 * 0.5, 0, iterations), &philosopher_2);
     phil[3] = new Periodic_Thread(RTConf(period_base * 1.6, period_base * 1.6 * 0.9, period_base * 1.6 * 0.5, 0, iterations), &philosopher_3);
     phil[4] = new Periodic_Thread(RTConf(period_base * 1.8, period_base * 1.8 * 0.9, period_base * 1.8 * 0.5, 0, iterations), &philosopher_4);
-
+    cout << "LM TEST" << endl;
     cout << "Philosophers are alive and hungry!" << endl;
 
     Display::position(7, 44);

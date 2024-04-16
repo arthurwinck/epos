@@ -344,8 +344,11 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 
 void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 {
+    if (Criterion::laxity) {
+        if (prev->_link.rank() != IDLE && prev->_link.rank() != MAIN)
+            prev->criterion().update();
+    }
     // "next" is not in the scheduler's queue anymore. It's already "chosen"
-
     if(charge) {
         if(Criterion::timed)
             _timer->restart();
