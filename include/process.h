@@ -30,6 +30,10 @@ protected:
     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
     static const unsigned int STACK_SIZE = Traits<Application>::STACK_SIZE;
 
+    // Atributos para ceiling
+    static const unsigned int MAX_PRIORITY = 4294967295;//2^32 -1 maior int possivel
+    int _original_priority;
+
     typedef CPU::Log_Addr Log_Addr;
     typedef CPU::Context Context;
 
@@ -99,8 +103,13 @@ protected:
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
+    
     static void lock() { CPU::int_disable(); }
     static void unlock() { CPU::int_enable(); }
+    // lock e unlock com ceiling protocol ICPP
+    static void lock(Thread * thread) { enter_critical_section(thread); CPU::int_disable(); }
+    static void unlock(Thread * thread) { CPU::int_enable(); exit_critical_section(thread); }
+
     static bool locked() { return CPU::int_disabled(); }
 
     static void sleep(Queue * q);
@@ -113,6 +122,20 @@ protected:
     static void dispatch(Thread * prev, Thread * next, bool charge = true);
 
     static int idle();
+
+    // Metodos para ceiling protocol ICPP
+    static void enter_critical_section(Thread * thread) {
+        lock();
+        thread->_original_priority = thread->_link.rank();  // Salva a prioridade original
+        thread->_link.rank(MAX_PRIORITY);                   // Eleva a prioridade para o máximo
+        unlock();
+    }
+
+    static void exit_critical_section(Thread * thread) {
+        lock();
+        thread->_link.rank(thread->_original_priority);     // Restaura a prioridade original
+        unlock();
+    }
 
 private:
     static void init();

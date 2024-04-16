@@ -16,27 +16,42 @@ Mutex::~Mutex()
 }
 
 
-void Mutex::lock()
+void Mutex::lock(LockMode mode)
 {
     db<Synchronizer>(TRC) << "Mutex::lock(this=" << this << ")" << endl;
 
-    begin_atomic();
-    if(tsl(_locked))
-        sleep();
-    end_atomic();
+    if (mode == Elevated) {
+        begin_atomic(Thread::self());
+        if(tsl(_locked))
+            sleep();
+        end_atomic(Thread::self());
+    } else {
+        begin_atomic();
+        if(tsl(_locked))
+            sleep();
+        end_atomic();
+    }
 }
 
-
-void Mutex::unlock()
+void Mutex::unlock(LockMode mode)
 {
     db<Synchronizer>(TRC) << "Mutex::unlock(this=" << this << ")" << endl;
 
-    begin_atomic();
-    if(_queue.empty())
-        _locked = false;
-    else
-        wakeup();
-    end_atomic();
+    if (mode == Elevated) {
+        begin_atomic(Thread::self());
+        if(_queue.empty())
+            _locked = false;
+        else
+            wakeup();
+        end_atomic(Thread::self());
+    } else {
+        begin_atomic();
+        if(_queue.empty())
+            _locked = false;
+        else
+            wakeup();
+        end_atomic();
+    }
 }
 
 __END_SYS

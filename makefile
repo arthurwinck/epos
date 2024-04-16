@@ -156,6 +156,17 @@ build_scheduler_lm_test:
 
 run_scheduler_lm_test_only:
 		$(MAKE) APPLICATION=scheduler_lm_test run1
+# run test only
+run_thread_ceiling_test: link_thread_ceiling_test build_thread_ceiling_test run_thread_ceiling_test_only
+
+link_thread_ceiling_test:
+		$(LINK) $(TST)/thread_ceiling_test $(APP);
+
+build_thread_ceiling_test:
+		$(MAKE) APPLICATION=thread_ceiling_test clean1 all1
+
+run_thread_ceiling_test_only:
+		$(MAKE) APPLICATION=thread_ceiling_test run1
 
 .PHONY: prebuild_$(APPLICATION) posbuild_$(APPLICATION) prerun_$(APPLICATION)
 prebuild_$(APPLICATION):
