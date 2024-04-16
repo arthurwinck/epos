@@ -16,6 +16,11 @@ void EDF::update() {
         _priority = Alarm::elapsed() + _deadline;
 }
 
+void LM::update() {
+    if((_priority >= PERIODIC) && (_priority < APERIODIC))
+        _priority = _deadline - _capacity - Alarm::elapsed() * 1000;
+}
+
 // Since the definition of FCFS above is only known to this unit, forcing its instantiation here so it gets emitted in scheduler.o for subsequent linking with other units is necessary.
 template FCFS::FCFS<>(int p);
 
