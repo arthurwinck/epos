@@ -15,6 +15,11 @@ Scheduler<Thread> Thread::_scheduler;
 void Thread::constructor_prologue(unsigned int stack_size)
 {
     lock();
+    // Da update na prioridade assim que a thread for criada se não for a IDLE ou a MAIN
+    if (Criterion::laxity) {
+        if (this->_link.rank() != IDLE && this->_link.rank() != MAIN)
+            this->criterion().update();
+    }
 
     _thread_count++;
     _scheduler.insert(this);
@@ -246,6 +251,11 @@ void Thread::sleep(Queue * q)
     assert(locked()); // locking handled by caller
 
     Thread * prev = running();
+    // UPDATE DA ANTIGA PRIORIDADE PARA SER REALOCADA NA FILA COM BASE NA NOVA PRIORIDADE
+    if (Criterion::laxity) {
+        if (prev->_link.rank() != IDLE && prev->_link.rank() != MAIN)
+            prev->criterion().update();
+    }
     _scheduler.suspend(prev);
     prev->_state = WAITING;
     prev->_waiting = q;
@@ -265,6 +275,12 @@ void Thread::wakeup(Queue * q)
 
     if(!q->empty()) {
         Thread * t = q->remove()->object();
+
+        if (Criterion::laxity) {
+            if (t->_link.rank() != IDLE && t->_link.rank() != MAIN)
+                t->criterion().update();
+        }
+
         t->_state = READY;
         t->_waiting = 0;
         _scheduler.resume(t);
@@ -284,6 +300,10 @@ void Thread::wakeup_all(Queue * q)
     if(!q->empty()) {
         while(!q->empty()) {
             Thread * t = q->remove()->object();
+            if (Criterion::laxity) {
+                if (t->_link.rank() != IDLE && t->_link.rank() != MAIN)
+                    t->criterion().update();
+            }
             t->_state = READY;
             t->_waiting = 0;
             _scheduler.resume(t);
@@ -304,6 +324,11 @@ void Thread::reschedule()
 
     Thread * prev = running();
     Thread * next = _scheduler.choose();
+    // UPDATE DA ANTIGA PRIORIDADE PARA SER REALOCADA NA FILA COM BASE NA NOVA PRIORIDADE
+    if (Criterion::laxity) {
+        if (prev->_link.rank() != IDLE && prev->_link.rank() != MAIN)
+            prev->criterion().update();
+    }
 
     dispatch(prev, next);
 }

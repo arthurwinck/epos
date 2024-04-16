@@ -146,6 +146,17 @@ cleantest: cleanapps
 		$(foreach tst,$(TESTS),cd $(TST)/${tst} && $(MAKETEST) APPLICATION=$(tst) clean;)
 		find $(APP) -maxdepth 1 -type l -exec $(CLEAN) {} \;
 
+run_scheduler_lm_test: link_scheduler_lm_test build_scheduler_lm_test run_scheduler_lm_test_only
+
+link_scheduler_lm_test:
+		$(LINK) $(TST)/scheduler_lm_test $(APP);
+
+build_scheduler_lm_test:
+		$(MAKE) APPLICATION=scheduler_lm_test clean1 all1
+
+run_scheduler_lm_test_only:
+		$(MAKE) APPLICATION=scheduler_lm_test run1
+
 .PHONY: prebuild_$(APPLICATION) posbuild_$(APPLICATION) prerun_$(APPLICATION)
 prebuild_$(APPLICATION):
 		@echo -n "Building $(APPLICATION) ..."
