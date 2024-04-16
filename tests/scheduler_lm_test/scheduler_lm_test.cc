@@ -22,6 +22,7 @@ int philosopher_0() { return philosopher(0, 5, 32); }
 int philosopher_1() { return philosopher(1, 10, 44); }
 int philosopher_2() { return philosopher(2, 16, 39); }
 int philosopher_3() { return philosopher(3, 16, 24); }
+int philosopher_4() { return philosopher(4, 10, 20); }
 
 int main()
 {
@@ -37,10 +38,11 @@ int main()
     const int iterations = 10;
 
     // Definições de cada philosopher usando Periodic_Thread
-    phil[1] = new Periodic_Thread(RTConf(period_base * 1.2, period_base * 1.2 * 0.9, period_base * 1.2 * 0.5, 0, iterations), &philosopher_0);
-    phil[2] = new Periodic_Thread(RTConf(period_base * 1.4, period_base * 1.4 * 0.9, period_base * 1.4 * 0.5, 0, iterations), &philosopher_1);
-    phil[3] = new Periodic_Thread(RTConf(period_base * 1.6, period_base * 1.6 * 0.9, period_base * 1.6 * 0.5, 0, iterations), &philosopher_2);
-    phil[4] = new Periodic_Thread(RTConf(period_base * 1.8, period_base * 1.8 * 0.9, period_base * 1.8 * 0.5, 0, iterations), &philosopher_3);
+    phil[0] = new Periodic_Thread(RTConf(period_base * 1.2, period_base * 1.2 * 0.9, period_base * 1.2 * 0.5, 0, iterations), &philosopher_0);
+    phil[1] = new Periodic_Thread(RTConf(period_base * 1.4, period_base * 1.4 * 0.9, period_base * 1.4 * 0.5, 0, iterations), &philosopher_1);
+    phil[2] = new Periodic_Thread(RTConf(period_base * 1.6, period_base * 1.6 * 0.9, period_base * 1.6 * 0.5, 0, iterations), &philosopher_2);
+    phil[3] = new Periodic_Thread(RTConf(period_base * 1.8, period_base * 1.8 * 0.9, period_base * 1.8 * 0.5, 0, iterations), &philosopher_3);
+    phil[4] = new Periodic_Thread(RTConf(period_base * 2, period_base * 2 * 0.9, period_base * 2 * 0.5, 0, iterations), &philosopher_4);
 
     cout << "Philosophers are alive and hungry!" << endl;
 
