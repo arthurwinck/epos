@@ -127,13 +127,13 @@ protected:
     static void enter_critical_section(Thread * thread) {
         lock();
         thread->_original_priority = thread->_link.rank();  // Salva a prioridade original
-        thread->_link.rank(MAX_PRIORITY);                   // Eleva a prioridade para o máximo
+        thread->_link.rank(Criterion(MAX_PRIORITY));                   // Eleva a prioridade para o máximo
         unlock();
     }
 
     static void exit_critical_section(Thread * thread) {
         lock();
-        thread->_link.rank(thread->_original_priority);     // Restaura a prioridade original
+        thread->_link.rank(Criterion(thread->_original_priority));     // Restaura a prioridade original
         unlock();
     }
 

@@ -20,7 +20,7 @@ void Mutex::lock(LockMode mode)
 {
     db<Synchronizer>(TRC) << "Mutex::lock(this=" << this << ")" << endl;
 
-    if (mode == Elevated) {
+    if (mode == Ceiling) {
         begin_atomic(Thread::self());
         if(tsl(_locked))
             sleep();
@@ -37,7 +37,7 @@ void Mutex::unlock(LockMode mode)
 {
     db<Synchronizer>(TRC) << "Mutex::unlock(this=" << this << ")" << endl;
 
-    if (mode == Elevated) {
+    if (mode == Ceiling) {
         begin_atomic(Thread::self());
         if(_queue.empty())
             _locked = false;

@@ -26,7 +26,7 @@ int philosopher_4() { return philosopher(4, 10, 20); }
 
 int main()
 {
-    table.lock(Mutex::Elevated);
+    table.lock(Mutex::Ceiling);
     Display::clear();
     Display::position(0, 0);
     cout << "CEILING PROTOCOL TEST" << endl;
@@ -60,14 +60,14 @@ int main()
     Display::position(19, 0);
 
     cout << "The dinner is served ..." << endl;
-    table.unlock(Mutex::Elevated);
+    table.unlock(Mutex::Ceiling);
 
     for(int i = 0; i < 5; i++) {
         int ret = phil[i]->join();
-        table.lock(Mutex::Elevated);
+        table.lock(Mutex::Ceiling);
         Display::position(20 + i, 0);
         cout << "Philosopher " << i << " ate " << ret << " times " << endl;
-        table.unlock(Mutex::Elevated);
+        table.unlock(Mutex::Ceiling);
     }
 
     for(int i = 0; i < 5; i++)
@@ -87,41 +87,41 @@ int philosopher(int n, int l, int c)
 
     for(int i = iterations; i > 0; i--) {
 
-        table.lock(Mutex::Elevated);
+        table.lock(Mutex::Ceiling);
         Display::position(l, c);
         cout << "thinking";
-        table.unlock(Mutex::Elevated);
+        table.unlock(Mutex::Ceiling);
 
         Delay thinking(1000000);
 
-        table.lock(Mutex::Elevated);
+        table.lock(Mutex::Ceiling);
         Display::position(l, c);
         cout << " hungry ";
-        table.unlock(Mutex::Elevated);
+        table.unlock(Mutex::Ceiling);
 
         chopstick[first]->p();   // get first chopstick
         chopstick[second]->p();  // get second chopstick
 
-        table.lock(Mutex::Elevated);
+        table.lock(Mutex::Ceiling);
         Display::position(l, c);
         cout << " eating ";
-        table.unlock(Mutex::Elevated);
+        table.unlock(Mutex::Ceiling);
 
         Delay eating(500000);
 
-        table.lock(Mutex::Elevated);
+        table.lock(Mutex::Ceiling);
         Display::position(l, c);
         cout << "  sate  ";
-        table.unlock(Mutex::Elevated);
+        table.unlock(Mutex::Ceiling);
 
         chopstick[first]->v();   // release first chopstick
         chopstick[second]->v();  // release second chopstick
     }
 
-    table.lock(Mutex::Elevated);
+    table.lock(Mutex::Ceiling);
     Display::position(l, c);
     cout << "  done  ";
-    table.unlock(Mutex::Elevated);
+    table.unlock(Mutex::Ceiling);
 
     return iterations;
 }

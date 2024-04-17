@@ -47,7 +47,7 @@ public:
 
     enum LockMode {
         Default,
-        Elevated
+        Ceiling
     };
 
     void lock(LockMode mode = Default);
