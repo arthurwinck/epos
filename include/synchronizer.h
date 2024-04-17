@@ -27,6 +27,9 @@ protected:
     void begin_atomic() { Thread::lock(); }
     void end_atomic() { Thread::unlock(); }
 
+    void begin_atomic(Thread * thread) { Thread::lock(thread); }
+    void end_atomic(Thread * thread) { Thread::unlock(thread); }
+
     void sleep() { Thread::sleep(&_queue); }
     void wakeup() { Thread::wakeup(&_queue); }
     void wakeup_all() { Thread::wakeup_all(&_queue); }
@@ -42,8 +45,13 @@ public:
     Mutex();
     ~Mutex();
 
-    void lock();
-    void unlock();
+    enum LockMode {
+        Default,
+        Ceiling
+    };
+
+    void lock(LockMode mode = Default);
+    void unlock(LockMode mode = Default);
 
 private:
     volatile bool _locked;

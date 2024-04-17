@@ -15,6 +15,11 @@ Scheduler<Thread> Thread::_scheduler;
 void Thread::constructor_prologue(unsigned int stack_size)
 {
     lock();
+    // Da update na prioridade assim que a thread for criada se não for a IDLE ou a MAIN
+    if (Criterion::laxity) {
+        if (this->_link.rank() != IDLE && this->_link.rank() != MAIN)
+            this->criterion().update();
+    }
 
     _thread_count++;
     _scheduler.insert(this);
@@ -93,28 +98,27 @@ Thread::~Thread()
 
 void Thread::priority(const Criterion & c)
 {
-    lock();
+    lock(this);
 
     db<Thread>(TRC) << "Thread::priority(this=" << this << ",prio=" << c << ")" << endl;
 
     if(_state != RUNNING) { // reorder the scheduling queue
         _scheduler.remove(this);
-        _link.rank(c);
+        _link.rank(Criterion(c));
         _scheduler.insert(this);
     } else
-        _link.rank(c);
+        _link.rank(Criterion(c));
 
     if(preemptive)
         reschedule();
 
-    unlock();
+    unlock(this);
 }
 
 
 int Thread::join()
 {
-    lock();
-
+    lock(this);
     db<Thread>(TRC) << "Thread::join(this=" << this << ",state=" << _state << ")" << endl;
 
     // Precondition: no Thread::self()->join()
@@ -134,8 +138,7 @@ int Thread::join()
 
         dispatch(prev, next);
     }
-
-    unlock();
+    unlock(this);
 
     return *reinterpret_cast<int *>(_stack);
 }
@@ -143,7 +146,7 @@ int Thread::join()
 
 void Thread::pass()
 {
-    lock();
+    lock(this);
 
     db<Thread>(TRC) << "Thread::pass(this=" << this << ")" << endl;
 
@@ -155,13 +158,13 @@ void Thread::pass()
     else
         db<Thread>(WRN) << "Thread::pass => thread (" << this << ") not ready!" << endl;
 
-    unlock();
+    unlock(this);
 }
 
 
 void Thread::suspend()
 {
-    lock();
+    lock(this);
 
     db<Thread>(TRC) << "Thread::suspend(this=" << this << ")" << endl;
 
@@ -174,13 +177,13 @@ void Thread::suspend()
 
     dispatch(prev, next);
 
-    unlock();
+    unlock(this);
 }
 
 
 void Thread::resume()
 {
-    lock();
+    lock(this);
 
     db<Thread>(TRC) << "Thread::resume(this=" << this << ")" << endl;
 
@@ -193,7 +196,7 @@ void Thread::resume()
     } else
         db<Thread>(WRN) << "Resume called for unsuspended object!" << endl;
 
-    unlock();
+    unlock(this);
 }
 
 
@@ -246,6 +249,11 @@ void Thread::sleep(Queue * q)
     assert(locked()); // locking handled by caller
 
     Thread * prev = running();
+    // UPDATE DA ANTIGA PRIORIDADE PARA SER REALOCADA NA FILA COM BASE NA NOVA PRIORIDADE
+    if (Criterion::laxity) {
+        if (prev->_link.rank() != IDLE && prev->_link.rank() != MAIN)
+            prev->criterion().update();
+    }
     _scheduler.suspend(prev);
     prev->_state = WAITING;
     prev->_waiting = q;
@@ -265,6 +273,7 @@ void Thread::wakeup(Queue * q)
 
     if(!q->empty()) {
         Thread * t = q->remove()->object();
+
         t->_state = READY;
         t->_waiting = 0;
         _scheduler.resume(t);
@@ -304,6 +313,11 @@ void Thread::reschedule()
 
     Thread * prev = running();
     Thread * next = _scheduler.choose();
+
+    if (Criterion::laxity) {
+        if (prev->_link.rank() != IDLE && prev->_link.rank() != MAIN)
+            prev->criterion().update();
+    }
 
     dispatch(prev, next);
 }

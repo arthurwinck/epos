@@ -1,10 +1,18 @@
-*.o
-*.img
-*.out
-*.cfg
 *.log
+*.img
+*.o
+*.out
 
-*.idea
-*.vscode
+epos.cfg
+eposcc.cfg
 
-*/img/
+include/system/*.h
+
+tools/*
+
+# **makefile
+# **makedefs
+.vscode/
+.idea/
+*.vscode/
+*.idea/

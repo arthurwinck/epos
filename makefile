@@ -31,7 +31,7 @@ ia32_PREFIX	:= /usr/bin/x86_64-linux-gnu-
 armv7_PREFIX	:= /usr/bin/arm-none-eabi-
 armv8_PREFIX	:= /usr/bin/aarch64-linux-gnu-
 rv32_PREFIX	:= /usr/bin/riscv64-linux-gnu-
-rv64_PREFIX	:= /usr/bin/riscv64-linux-gnu-
+rv64_PREFIX := $(shell pwd)/../riscv/bin/riscv64-unknown-linux-gnu-
 
 # Make basic commands
 DD              = dd
@@ -145,6 +145,28 @@ cleantest: cleanapps
 		$(foreach tst,$(TESTS),$(LINK) $(TST)/$(tst) $(APP);)
 		$(foreach tst,$(TESTS),cd $(TST)/${tst} && $(MAKETEST) APPLICATION=$(tst) clean;)
 		find $(APP) -maxdepth 1 -type l -exec $(CLEAN) {} \;
+
+run_scheduler_lm_test: link_scheduler_lm_test build_scheduler_lm_test run_scheduler_lm_test_only
+
+link_scheduler_lm_test:
+		$(LINK) $(TST)/scheduler_lm_test $(APP);
+
+build_scheduler_lm_test:
+		$(MAKE) APPLICATION=scheduler_lm_test clean1 all1
+
+run_scheduler_lm_test_only:
+		$(MAKE) APPLICATION=scheduler_lm_test run1
+# run test only
+run_thread_ceiling_test: link_thread_ceiling_test build_thread_ceiling_test run_thread_ceiling_test_only
+
+link_thread_ceiling_test:
+		$(LINK) $(TST)/thread_ceiling_test $(APP);
+
+build_thread_ceiling_test:
+		$(MAKE) APPLICATION=thread_ceiling_test clean1 all1
+
+run_thread_ceiling_test_only:
+		$(MAKE) APPLICATION=thread_ceiling_test run1
 
 .PHONY: prebuild_$(APPLICATION) posbuild_$(APPLICATION) prerun_$(APPLICATION)
 prebuild_$(APPLICATION):
