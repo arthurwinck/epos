@@ -1,0 +1,10 @@
+*.o
+*.img
+*.out
+*.cfg
+*.log
+
+*.idea
+*.vscode
+
+*/img/

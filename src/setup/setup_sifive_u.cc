@@ -14,7 +14,8 @@ extern "C" {
 
     // SETUP entry point is in .init (and not in .text), so it will be linked first and will be the first function after the ELF header in the image
     void _entry() __attribute__ ((used, naked, section(".init")));
-    void _int_m2s() __attribute((naked, aligned(4)));
+    // Should be aligned in 32 bits
+    void _int_m2s() __attribute((naked, aligned(8)));
     void _setup();
 
     // LD eliminates this variable while performing garbage collection, that's why the used attribute.
@@ -90,6 +91,7 @@ private:
     void setup_sys_pd();
     void setup_flat_paging();
     void enable_paging();
+    void check_for_clock_frequency();
 
     void load_parts();
     void adjust_perms();
@@ -119,6 +121,9 @@ Setup::Setup()
     // Print basic facts about this EPOS instance
     say_hi();
 
+    // Testing if the clock parameters are ok for the interrupt handling problem
+    check_for_clock_frequency();
+
     // Configure a flat memory model for the single task in the system
     setup_flat_paging();
 
@@ -130,6 +135,21 @@ Setup::Setup()
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
+}
+
+void Setup::check_for_clock_frequency()
+{
+    const int INT_M2S_INSTRUCTIONS = 100;
+
+    int max_frequency_value = Traits<CPU>::CLOCK * 0.01 - Traits<Timer>::FREQUENCY;
+    int min_frequency_value = Traits<Timer>::FREQUENCY - Traits<CPU>::CLOCK * 0.0001;
+
+    if (max_frequency_value < 0 || min_frequency_value < 0) {
+        db<Setup>(ERR) << "Setup has crashed because the frequency chosen for the timer is dangerously high/low compared to the clock of the processor. max: " << max_frequency_value << " | min: " << min_frequency_value;
+        Machine::panic();
+    } else if (max_frequency_value)
+
+
 }
 
 
@@ -732,6 +752,8 @@ if(Traits<CPU>::WORD_SIZE == 32) {
         CPU::mipc(CPU::STI);                            // STI was handled in supervisor mode, so clear the corresponding pending bit
         CPU::mepc(CPU::mepc() + 4);
     }
+
+    //Machine_Common::delay(200);
 
     // Restore context
 if(Traits<CPU>::WORD_SIZE == 32) {

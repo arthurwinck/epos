@@ -21,6 +21,7 @@ void IC::entry()
     if(Traits<IC>::hysterically_debugged)
         print_context(true);
 
+    // Machine_Common::delay(200);
     dispatch();
 
     if(Traits<IC>::hysterically_debugged)
