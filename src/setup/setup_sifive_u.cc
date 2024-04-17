@@ -139,17 +139,52 @@ Setup::Setup()
 
 void Setup::check_for_clock_frequency()
 {
-    const int INT_M2S_INSTRUCTIONS = 100;
+    /*
+    The tests were made changing the values of CLOCK, RTCCLK and the FREQUENCY of the timer,
+    in our machine (AMD Ryzen 5 5500U - 4056 max Mhz quoting from lscpu) we werent able to reproduce the
+    floating behavior of the stack pointer, but we were able to see how the change of the frequency of the values of the Timer
+    affected the execution of the tests (philosophers dinner)
+    
+    With 10^3 hz of frequency we werent able to finish the execution of the program, and the SP was frozen at that point, we ran the test for
+    an hour or so and the values stayed the same
+
+    With 5^3 hz of frequency we were able to reproduce a variable trying to read from a protected section 
+
+    The running thread will now be terminated!
+    IC::Exception(5) => {thread=0x0000000000000001,sp=0x0000000087ff3a78,status=0xc0
+    100,cause=5,epc=0x00000000800037f8,tval=0x0000000000000008} => data protection violation (read) 
+
+    With 2^3 hz we were able to see the SP normal behavior, we used the breakpoint in the mtvec address.
+    During those times most of the addresses on the mepc register were the ecalls, so it seems it would be working as intended
+    0x87ff8620
+    0x87ff8510
+    0x87ff8500
+    
+    Using the delay in the IC::entry and int_m2s functions we had some other inconclusive results
+
+    Using an 1s delay on IC::entry
+    Heap::alloc(this=0x000000000200bffc): out of memory while allocating 36035800 by
+    tes!
+    PANIC!
+
+    200ms Delay on int_m2s (coulndt execute the test properly)
+
+    IC::Exception(5) => {thread=0x0000000000000001,sp=0x0000000087b249d8,status=0xc0
+    100,cause=5,epc=0x0000000080004638,tval=0x000000000200c050} => data protection v
+    iolation (read)
+
+    Weve had some inconclusive test results, but created the test based on the 1% processor time execution usage...
+    */
 
     int max_frequency_value = Traits<CPU>::CLOCK * 0.01 - Traits<Timer>::FREQUENCY;
     int min_frequency_value = Traits<Timer>::FREQUENCY - Traits<CPU>::CLOCK * 0.0001;
 
     if (max_frequency_value < 0 || min_frequency_value < 0) {
-        db<Setup>(ERR) << "Setup has crashed because the frequency chosen for the timer is dangerously high/low compared to the clock of the processor. max: " << max_frequency_value << " | min: " << min_frequency_value;
+        db<Setup>(ERR) << "Setup has crashed because the frequency chosen for the timer is dangerously high/low compared to the clock of the processor";
         Machine::panic();
-    } else if (max_frequency_value)
-
-
+    } else if (max_frequency_value < Traits<CPU>::CLOCK * 0.05 || min_frequency_value < 0) {
+        db<Setup>(WRN) << "Setup is warning you because the frequency chosen for the timer is dangerously high/low compared to the clock of the processor";
+    }
 }
 
 
