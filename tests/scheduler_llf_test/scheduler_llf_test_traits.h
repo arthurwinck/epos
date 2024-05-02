@@ -100,7 +100,7 @@ template<> struct Traits<Application>: public Traits<Build>
 template<> struct Traits<System>: public Traits<Build>
 {
     static const bool multithread = (Traits<Application>::MAX_THREADS > 1);
-    static const bool multiheap = true;
+    static const bool multiheap = Traits<Scratchpad>::enabled;
 
     static const unsigned long LIFE_SPAN = 1 * YEAR; // s
     static const unsigned int DUTY_CYCLE = 1000000; // ppm
@@ -116,10 +116,10 @@ template<> struct Traits<Thread>: public Traits<Build>
     static const bool enabled = Traits<System>::multithread;
     static const bool trace_idle = hysterically_debugged;
     static const bool simulate_capacity = false;
-    static const int priority_inversion_protocol = NONE;
+    static const int priority_inversion_protocol = INHERITANCE;
 
-    typedef RR Criterion;
-    static const unsigned int QUANTUM = 100000; // us
+    typedef LLF Criterion;
+    static const unsigned int QUANTUM = 10000; // us
 };
 
 template<> struct Traits<Scheduler<Thread>>: public Traits<Build>

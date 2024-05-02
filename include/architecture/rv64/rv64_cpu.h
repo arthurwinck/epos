@@ -530,20 +530,15 @@ if(interrupt) {
 
 inline void CPU::Context::pop(bool interrupt)
 {
-if(interrupt) {
-    int_disable();                                      // atomize Context::pop() by disabling interrupts (SPIE will restore the flag on iret())
-}
     ASM("       ld       x3,    0(sp)           \n");   // pop PC into TMP
 if(supervisor) {
     ASM("       csrw     sepc, x3               \n");   // SEPC = PC
 } else {
     ASM("       csrw     mepc, x3               \n");   // MEPC = PC
 }
-    ASM("       ld       x3,    8(sp)           \n");   // pop ST into TMP
-if(!interrupt) {
-    ASM("       li      x10, %0                 \n"     // use X10 as a second TMP, since it will be restored later
+    ASM("       ld       x3,    8(sp)           \n"     // pop ST into TMP
+        "       li      x10, %0                 \n"     // use X10 as a second TMP, since it will be restored later
         "       or       x3, x3, x10            \n" : : "i"(supervisor ? SPP_S : MPP_M)); // [M|S]STATUS.[S|M]PP is automatically cleared on the [M|S]RET in the ISR, so we need to recover it here
-}
     ASM("       ld       x1,   16(sp)           \n"     // pop RA
         "       ld       x5,   24(sp)           \n"     // pop X5-X31
         "       ld       x6,   32(sp)           \n"

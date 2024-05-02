@@ -270,9 +270,11 @@ if(Traits<CPU>::WORD_SIZE == 32) {
 
     if((id & CLINT::INT_MASK) == CLINT::IRQ_MAC_TIMER) {
         Timer::reset();                                 // MIP.MTI is a direct logic on (MTIME == MTIMECMP) and reseting the Timer (i.e. adjusting MTIMECMP) seems to be the only way to clear it
+        CPU::miec(CPU::MTI);
         CPU::mips(CPU::STI);                            // forward desired interrupts to supervisor mode
     } else if(id == CPU::EXC_ENVS) {
         CPU::mipc(CPU::STI);                            // STI was handled in supervisor mode, so clear the corresponding pending bit
+        CPU::mies(CPU::MTI);
         CPU::mepc(CPU::mepc() + 4);
     }
 
