@@ -16,7 +16,13 @@ protected:
 
 protected:
     Synchronizer_Common() {}
-    ~Synchronizer_Common() { begin_atomic(); wakeup_all(); end_atomic(); }
+    ~Synchronizer_Common() {
+        Thread::lock();
+        while(!_granted.empty())
+            _granted.remove()->object();
+        wakeup_all();
+        Thread::unlock();
+    }
 
     // Atomic operations
     bool tsl(volatile bool & lock) { return CPU::tsl(lock); }
@@ -24,15 +30,18 @@ protected:
     long fdec(volatile long & number) { return CPU::fdec(number); }
 
     // Thread operations
-    void begin_atomic() { Thread::lock(); }
-    void end_atomic() { Thread::unlock(); }
+    void lock_for_acquiring() { Thread::lock(); Thread::prioritize(&_granted); }
+    void unlock_for_acquiring() { _granted.insert(Thread::running()->alink()); Thread::unlock(); }
+    void lock_for_releasing() { Thread::lock(); Thread::deprioritize(&_granted); Thread::deprioritize(&_waiting); }
+    void unlock_for_releasing() { _granted.remove(Thread::running()); Thread::unlock(); }
 
-    void sleep() { Thread::sleep(&_queue); }
-    void wakeup() { Thread::wakeup(&_queue); }
-    void wakeup_all() { Thread::wakeup_all(&_queue); }
+    void sleep() { Thread::sleep(&_waiting); }
+    void wakeup() { Thread::wakeup(&_waiting); }
+    void wakeup_all() { Thread::wakeup_all(&_waiting); }
 
 protected:
-    Queue _queue;
+    Queue _waiting;
+    Queue _granted;
 };
 
 
