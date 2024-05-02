@@ -224,7 +224,7 @@ public:
     static Log_Addr fr() { Reg r; ASM("mv %0, a0" :  "=r"(r)); return r; }
     static void fr(Reg r) {       ASM("mv a0, %0" : : "r"(r) :); }
 
-    static unsigned int id() { return supervisor ? tp() : 0; }
+    static unsigned int id() { return supervisor ? tp() : mhartid(); }
     static unsigned int cores() { return 1; }
 
     using CPU_Common::clock;

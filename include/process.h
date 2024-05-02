@@ -96,7 +96,6 @@ protected:
     void constructor_epilogue(Log_Addr entry, unsigned int stack_size);
 
     Queue::Element * link() { return &_link; }
-    Queue::Element * alink() { return &_alink; }
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
@@ -137,7 +136,6 @@ protected:
     Queue * _waiting;
     Thread * volatile _joining;
     Queue::Element _link;
-    Queue::Element _alink;
 
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
@@ -204,7 +202,7 @@ private:
 
 template<typename ... Tn>
 inline Thread::Thread(int (* entry)(Tn ...), Tn ... an)
-: _task(Task::self()), _state(READY), _waiting(0), _joining(0), _link(this, NORMAL), _alink(this, NORMAL)
+: _task(Task::self()), _state(READY), _waiting(0), _joining(0), _link(this, NORMAL)
 {
     constructor_prologue(STACK_SIZE);
     _context = CPU::init_stack(0, _stack + STACK_SIZE, &__exit, entry, an ...);
@@ -213,7 +211,7 @@ inline Thread::Thread(int (* entry)(Tn ...), Tn ... an)
 
 template<typename ... Tn>
 inline Thread::Thread(Configuration conf, int (* entry)(Tn ...), Tn ... an)
-: _task(Task::self()), _state(conf.state), _waiting(0), _joining(0), _link(this, conf.criterion), _alink(this, conf.criterion)
+: _task(Task::self()), _state(conf.state), _waiting(0), _joining(0), _link(this, conf.criterion)
 {
     constructor_prologue(conf.stack_size);
     _context = CPU::init_stack(0, _stack + conf.stack_size, &__exit, entry, an ...);

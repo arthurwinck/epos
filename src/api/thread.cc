@@ -326,7 +326,8 @@ void Thread::prioritize(Queue * q)
                 r->_waiting->remove(&r->_link);
                 r->_link.rank(c);
                 r->_waiting->insert(&r->_link);
-            }
+            } else
+                r->_link.rank(c);
         }
     }
 }
@@ -342,8 +343,8 @@ void Thread::deprioritize(Queue * q)
     db<Thread>(TRC) << "Thread::deprioritize(q=" << q << ") [running=" << running() << "]" << endl;
 
     Thread * r = running();
+    Criterion c = r->_natural_priority;
     for(Queue::Iterator i = q->begin(); i != q->end(); ++i) {
-        Criterion c = r->_natural_priority;
         if(i->object()->priority() != c) {
             if(r->_state == READY) {
                 _scheduler.suspend(r);
@@ -353,7 +354,8 @@ void Thread::deprioritize(Queue * q)
                 r->_waiting->remove(&r->_link);
                 r->_link.rank(c);
                 r->_waiting->insert(&r->_link);
-            }
+            } else
+                r->_link.rank(c);
         }
     }
 }

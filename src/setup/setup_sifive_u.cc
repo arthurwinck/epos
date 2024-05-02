@@ -90,14 +90,16 @@ Setup::Setup()
     // Print basic facts about this EPOS instance
     say_hi();
 
-    // Configure a flat memory model for the single task in the system
-    setup_flat_paging();
+    if(Traits<Machine>::supervisor) {
+        // Configure a flat memory model for the single task in the system
+        setup_flat_paging();
 
-    // Relocate the machine to supervisor interrupt forwarder
-    setup_m2s();
+        // Relocate the machine to supervisor interrupt forwarder
+        setup_m2s();
 
-    // Enable paging
-    enable_paging();
+        // Enable paging
+        enable_paging();
+    }
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
@@ -212,14 +214,20 @@ void _entry() // machine mode
 
     Machine::clear_bss();
 
-    CPU::mtvec(CPU::INT_DIRECT, Memory_Map::INT_M2S);   // setup a machine mode interrupt handler to forward timer interrupts (which cannot be delegated via mideleg)
-    CPU::mideleg(CPU::SSI | CPU::STI | CPU::SEI);       // delegate supervisor interrupts to supervisor mode
-    CPU::medeleg(0xf1ff);                               // delegate all exceptions to supervisor mode but ecalls
-    CPU::mie(CPU::MSI | CPU::MTI | CPU::MEI);           // enable interrupt generation by at machine level before going into supervisor mode
+    if(Traits<Machine>::supervisor) {
+        CPU::mtvec(CPU::INT_DIRECT, Memory_Map::INT_M2S);   // setup a machine mode interrupt handler to forward timer interrupts (which cannot be delegated via mideleg)
+        CPU::mideleg(CPU::SSI | CPU::STI | CPU::SEI);       // delegate supervisor interrupts to supervisor mode
+        CPU::medeleg(0xf1ff);                               // delegate all exceptions to supervisor mode but ecalls
+        CPU::mie(CPU::MSI | CPU::MTI | CPU::MEI);           // enable interrupt generation by at machine level before going into supervisor mode
+        CPU::mstatus(CPU::MPP_S | CPU::MPIE | CPU::MXR);    // prepare jump into supervisor mode at MRET with interrupts enabled at machine level
+        CPU::mstatusc(CPU::SIE);                            // disable interrupts (they will be reenabled at Init_End)
+        CPU::sstatuss(CPU::SUM);                            // allows User Memory access in supervisor mode
+    } else {
+        CPU::mie(0);                                        // disable interrupts at CLINT (each device will enable the necessary ones)
+        CPU::mstatus(CPU::MPP_M);                           // continue in machine mode at MRET
+    }
+
     CLINT::mtimecmp(-1ULL);                             // configure MTIMECMP so it won't trigger a timer interrupt before we can setup_m2s()
-    CPU::mstatus(CPU::MPP_S | CPU::MPIE | CPU::MXR);    // prepare jump into supervisor mode at MRET with interrupts enabled at machine level
-    CPU::mstatusc(CPU::SIE);                            // disable interrupts (they will be reenabled at Init_End)
-    CPU::sstatuss(CPU::SUM);                            // allows User Memory access in supervisor mode
 
     CPU::pmpcfg0(0b11111); 				// configure PMP region 0 as (L=unlocked [0], [00], A = NAPOT [11], X [1], W [1], R [1])
     CPU::pmpaddr0((1ULL << MMU::LA_BITS) - 1);          // comprising the whole memory space
