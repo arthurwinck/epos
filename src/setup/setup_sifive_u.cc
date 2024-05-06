@@ -70,8 +70,11 @@ private:
 private:
     System_Info * si;
     MMU mmu;
+    static volatile bool _paging_ready;
 };
 
+// Why the need for the variable instead of the barrier? We have would have two barriers in setup 
+volatile bool Setup::_paging_ready = false;
 
 Setup::Setup()
 {
@@ -87,19 +90,37 @@ Setup::Setup()
     db<Setup>(TRC) << "Setup(si=" << reinterpret_cast<void *>(si) << ",sp=" << CPU::sp() << ")" << endl;
     db<Setup>(INF) << "Setup:si=" << *si << endl;
 
-    // Print basic facts about this EPOS instance
-    say_hi();
+    // Boostrap CPU say_hi
+    if (CPU::id() == 0) {
+        // Print basic facts about this EPOS instance
+        say_hi();
 
+        if(Traits<Machine>::supervisor) {
+            // Configure a flat memory model for the single task in the system
+            setup_flat_paging();
+
+            // Relocate the machine to supervisor interrupt forwarder
+            setup_m2s();
+        }
+        // Paging is done, tell others cores they can enable it
+        _paging_ready = true;
+
+    }
+        
     if(Traits<Machine>::supervisor) {
-        // Configure a flat memory model for the single task in the system
-        setup_flat_paging();
-
-        // Relocate the machine to supervisor interrupt forwarder
-        setup_m2s();
-
+        
+        // Wait for boostrap cpu to finish setup for paging -- When boostrap cpu arrives here it will certanly be able to enable paging
+        // Why not use a barrier here? 
+        if (CPU::id() != 0)
+            while(!_paging_ready);
+        
         // Enable paging
         enable_paging();
     }
+
+    // Do I use traits CPU or system info? Does it have any affect?
+    CPU::smp_barrier();
+    // CPU::smp_barrier(si->bm.n_cpus);
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
@@ -212,7 +233,8 @@ void _entry() // machine mode
     CPU::tp(CPU::mhartid() - 1);                        // tp will be CPU::id() for supervisor mode; we won't count core 0, which is an heterogeneous E51
     CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
 
-    Machine::clear_bss();
+    if(CPU::id() == 0)
+        Machine::clear_bss();
 
     if(Traits<Machine>::supervisor) {
         CPU::mtvec(CPU::INT_DIRECT, Memory_Map::INT_M2S);   // setup a machine mode interrupt handler to forward timer interrupts (which cannot be delegated via mideleg)

@@ -8,6 +8,7 @@ __BEGIN_SYS
 
 extern OStream kout;
 
+bool Thread::_not_booting;
 volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;

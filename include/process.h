@@ -87,7 +87,8 @@ public:
     void suspend();
     void resume();
 
-    static Thread * volatile self() { return running(); }
+    static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
+
     static void yield();
     static void exit(int status = 0);
 
@@ -137,6 +138,7 @@ protected:
     Thread * volatile _joining;
     Queue::Element _link;
 
+    static bool _not_booting;
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;

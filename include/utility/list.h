@@ -1142,6 +1142,7 @@ private:
     Element * volatile _chosen;
 };
 
+// TODO: Precisamos declarar os heads nos objetos que vao usar isso
 
 // Doubly-Linked, Multihead Scheduling List
 // Besides declaring "Criterion", objects subject to scheduling policies that
