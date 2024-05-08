@@ -1,0 +1,19 @@
+{
+  "files.associations": {
+    "*.tcc": "cpp",
+    "unordered_map": "cpp",
+    "fstream": "cpp",
+    "istream": "cpp",
+    "numeric": "cpp",
+    "ostream": "cpp",
+    "sstream": "cpp",
+    "memory": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp",
+    "variant": "cpp",
+    "array": "cpp",
+    "string_view": "cpp",
+    "span": "cpp",
+    "functional": "cpp"
+  }
+}

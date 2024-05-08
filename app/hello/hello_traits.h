@@ -118,6 +118,7 @@ template<> struct Traits<Thread>: public Traits<Build>
     static const bool trace_idle = hysterically_debugged;
     static const bool simulate_capacity = false;
     static const int priority_inversion_protocol = NONE;
+    static const int multi_processing = true;
 
     typedef RR Criterion;
     static const unsigned int QUANTUM = 10000; // us
