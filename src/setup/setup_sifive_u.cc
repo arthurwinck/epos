@@ -25,6 +25,8 @@ __BEGIN_SYS
 
 extern OStream kout, kerr;
 
+//OStream cout;
+
 class SV32_MMU;
 class SV39_MMU;
 
@@ -90,11 +92,18 @@ Setup::Setup()
     db<Setup>(TRC) << "Setup(si=" << reinterpret_cast<void *>(si) << ",sp=" << CPU::sp() << ")" << endl;
     db<Setup>(INF) << "Setup:si=" << *si << endl;
 
-    // Boostrap CPU say_hi
+    //cout << "Initializing core: " << CPU::id() << endl;
+    kout << "Initializing core: " << CPU::id() << endl;
+
+    // Synchronize Setup
+    CPU::smp_barrier();
+
+    // Boostrap CPU setup
     if (CPU::id() == 0) {
         // Print basic facts about this EPOS instance
         say_hi();
 
+        // We maintain the code only executed for the supervisor mode inside the boostrap cpu
         if(Traits<Machine>::supervisor) {
             // Configure a flat memory model for the single task in the system
             setup_flat_paging();
@@ -110,7 +119,7 @@ Setup::Setup()
     if(Traits<Machine>::supervisor) {
         
         // Wait for boostrap cpu to finish setup for paging -- When boostrap cpu arrives here it will certanly be able to enable paging
-        // Why not use a barrier here? 
+        // Considering not using a barrier because only one writer and multiple readers
         if (CPU::id() != 0)
             while(!_paging_ready);
         
@@ -118,14 +127,14 @@ Setup::Setup()
         enable_paging();
     }
 
-    // Do I use traits CPU or system info? Does it have any affect?
+    db<Setup>(WRN) << "Core: " << CPU::id() << "On barrier 1\n" << endl;
+    
+    // Finished setup for all cores
     CPU::smp_barrier();
-    // CPU::smp_barrier(si->bm.n_cpus);
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
 }
-
 
 void Setup::setup_flat_paging()
 {
@@ -210,6 +219,9 @@ void Setup::call_next()
 {
     db<Setup>(INF) << "SETUP ends here!" << endl;
 
+    // Before calling _start, let's synchronize all cores
+    CPU::smp_barrier();
+
     // Call the next stage
     static_cast<void (*)()>(_start)();
 
@@ -231,9 +243,10 @@ void _entry() // machine mode
     CPU::mstatusc(CPU::MIE);                            // disable interrupts (they will be reenabled at Init_End)
 
     CPU::tp(CPU::mhartid() - 1);                        // tp will be CPU::id() for supervisor mode; we won't count core 0, which is an heterogeneous E51
-    CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
+    CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE * (CPU::id() + 1) - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
 
-    if(CPU::id() == 0)
+    // Only BSP clear BSS
+    if(CPU::id() == 0) 
         Machine::clear_bss();
 
     if(Traits<Machine>::supervisor) {
