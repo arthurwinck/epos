@@ -15,6 +15,9 @@ private:
     static const bool supervisor = Traits<Machine>::supervisor;
 
 public:
+    // Boostrap Setup Processor
+    static const unsigned long BSP = Traits<Machine>::BSP;
+
     // CPU Native Data Types
     using CPU_Common::Reg8;
     using CPU_Common::Reg16;

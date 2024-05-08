@@ -19,7 +19,7 @@ extern "C" {
 
     // Utility-related methods that differ from kernel and user space.
     // OStream
-   void _print(const char * s) { Display::puts(s); }
+    void _print(const char * s) { Display::puts(s); }
     static volatile int _setup_print_lock = -1;
     void _print_preamble() {
         if(Traits<System>::multicore) {

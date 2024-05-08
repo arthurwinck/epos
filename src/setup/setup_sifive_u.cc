@@ -96,10 +96,10 @@ Setup::Setup()
     kout << "Initializing core: " << CPU::id() << endl;
 
     // Synchronize Setup
-    CPU::smp_barrier();
+    // CPU::smp_barrier();
 
     // Boostrap CPU setup
-    if (CPU::id() == 0) {
+    if (CPU::id() == CPU::BSP) {
         // Print basic facts about this EPOS instance
         say_hi();
 
@@ -120,8 +120,8 @@ Setup::Setup()
         
         // Wait for boostrap cpu to finish setup for paging -- When boostrap cpu arrives here it will certanly be able to enable paging
         // Considering not using a barrier because only one writer and multiple readers
-        if (CPU::id() != 0)
-            while(!_paging_ready);
+        // if (CPU::id() != 0)
+        //     while(!_paging_ready);
         
         // Enable paging
         enable_paging();
@@ -130,7 +130,7 @@ Setup::Setup()
     db<Setup>(WRN) << "Core: " << CPU::id() << "On barrier 1\n" << endl;
     
     // Finished setup for all cores
-    CPU::smp_barrier();
+    // CPU::smp_barrier();
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
@@ -220,10 +220,11 @@ void Setup::call_next()
     db<Setup>(INF) << "SETUP ends here!" << endl;
 
     // Before calling _start, let's synchronize all cores
-    CPU::smp_barrier();
+    // CPU::smp_barrier();
 
     // Call the next stage
-    static_cast<void (*)()>(_start)();
+    if (CPU::id() == CPU::BSP)
+        static_cast<void (*)()>(_start)();
 
     // SETUP is now part of the free memory and this point should never be reached, but, just in case ... :-)
     db<Setup>(ERR) << "OS failed to init!" << endl;
@@ -246,7 +247,7 @@ void _entry() // machine mode
     CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE * (CPU::id() + 1) - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
 
     // Only BSP clear BSS
-    if(CPU::id() == 0) 
+    if(CPU::id() == CPU::BSP)
         Machine::clear_bss();
 
     if(Traits<Machine>::supervisor) {
