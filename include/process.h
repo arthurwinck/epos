@@ -10,7 +10,6 @@
 #include <scheduler.h>
 
 extern "C" { void __exit(); }
-
 __BEGIN_SYS
 
 class Thread
@@ -101,9 +100,21 @@ protected:
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
-    static void lock() { CPU::int_disable(); }
-    static void unlock() { CPU::int_enable(); }
-    static bool locked() { return CPU::int_disabled(); }
+    static void lock(Spin * lock = &_spin) {
+        CPU::int_disable();
+        if(multi_processing)
+            lock->acquire();
+    }
+
+    static void unlock(Spin * lock = &_spin) {
+        if(multi_processing)
+            lock->release();
+        // TODO: NOT BOOTING PQ?
+        if(_not_booting)
+            CPU::int_enable();
+    }
+
+    static volatile bool locked() { return (multi_processing) ? _spin.taken() : CPU::int_disabled(); }
 
     static void sleep(Queue * queue);
     static void wakeup(Queue * queue);

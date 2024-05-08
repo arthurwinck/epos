@@ -12,7 +12,6 @@ Task * volatile Task::_current;
 Task::~Task()
 {
     db<Task>(TRC) << "~Task(this=" << this << ")" << endl;
-
     while(!_resources.empty()) {
         Resource * r = _resources.remove();
         switch(r->type()) {
