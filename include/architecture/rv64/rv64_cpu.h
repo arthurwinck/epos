@@ -15,6 +15,9 @@ private:
     static const bool supervisor = Traits<Machine>::supervisor;
 
 public:
+    // Boostrap Setup Processor
+    static const bool BSP = Traits<Machine>::BSP;
+    
     // CPU Native Data Types
     using CPU_Common::Reg8;
     using CPU_Common::Reg16;
@@ -228,8 +231,12 @@ public:
     static Log_Addr fr() { Reg r; ASM("mv %0, a0" :  "=r"(r)); return r; }
     static void fr(Reg r) {       ASM("mv a0, %0" : : "r"(r) :); }
 
-    static unsigned int id() { return supervisor ? tp() : mhartid(); }
-    static unsigned int cores() { return 1; }
+    // Need to decrement one from the id so barriers can work normally (ignore the first core)
+    static unsigned int id() { return supervisor ? tp() : mhartid() - 1; }
+    static unsigned int cores() { return Traits<Build>::CPUS; }
+
+    // Lets use the smp_barrier of CPU common with the finc function from rv cpu to create the barrier
+    static void smp_barrier(unsigned long cores = CPU::cores()) { CPU_Common::smp_barrier<&finc>(cores, id()); }
 
     using CPU_Common::clock;
     using CPU_Common::min_clock;

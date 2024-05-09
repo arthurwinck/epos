@@ -23,6 +23,7 @@ class Thread
     friend class System;                // for init()
 
 protected:
+    static const bool multi_processing = Traits<Thread>::multi_processing;
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
     static const int priority_inversion_protocol = Traits<Thread>::priority_inversion_protocol;
     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
@@ -87,7 +88,8 @@ public:
     void suspend();
     void resume();
 
-    static Thread * volatile self() { return running(); }
+    static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
+
     static void yield();
     static void exit(int status = 0);
 
@@ -137,9 +139,12 @@ protected:
     Thread * volatile _joining;
     Queue::Element _link;
 
+    // Em Thread::self escolhemos caso estivermos bootando vamos escolher o CPU, caso já tivermos as threads prontas buscamos a thread
+    static bool _not_booting;
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;
+    static Spin _spin;
 };
 
 
