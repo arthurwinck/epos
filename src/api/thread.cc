@@ -451,7 +451,7 @@ int Thread::idle()
 
 __END_SYS
 
-// Identifier forwarder to the spin lock
+// Wrapper for the Thread::self() to identifier _owner in Spin
 __BEGIN_UTIL
 
 volatile unsigned long Thread_Identifier::identifier() {
