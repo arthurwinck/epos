@@ -17,7 +17,7 @@ Spin Thread::_spin;
 void Thread::constructor_prologue(unsigned int stack_size)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::constructor_prologue" << cpu_id() << endl;
+    kout << "Thread::constructor_prologue " << cpu_id() << endl;
     lock();
 
     _thread_count++;
@@ -30,7 +30,7 @@ void Thread::constructor_prologue(unsigned int stack_size)
 void Thread::constructor_epilogue(Log_Addr entry, unsigned int stack_size)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::constructor_epilogue" << cpu_id() << endl;
+    kout << "Thread::constructor_epilogue " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread(entry=" << entry
                     << ",state=" << _state
                     << ",priority=" << _link.rank()
@@ -59,7 +59,7 @@ void Thread::constructor_epilogue(Log_Addr entry, unsigned int stack_size)
 Thread::~Thread()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::~Thread" << cpu_id() << endl;
+    kout << "Thread::~Thread " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "~Thread(this=" << this
@@ -109,7 +109,7 @@ Thread::~Thread()
 void Thread::priority(Criterion c)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::priority" << cpu_id() << endl;
+    kout << "Thread::priority " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::priority(this=" << this << ",prio=" << c << ")" << endl;
@@ -131,7 +131,7 @@ void Thread::priority(Criterion c)
 int Thread::join()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::join" << cpu_id() << endl;
+    kout << "Thread::join " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::join(this=" << this << ",state=" << _state << ")" << endl;
@@ -163,7 +163,7 @@ int Thread::join()
 void Thread::pass()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::pass" << cpu_id() << endl;
+    kout << "Thread::pass " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::pass(this=" << this << ")" << endl;
@@ -183,7 +183,7 @@ void Thread::pass()
 void Thread::suspend()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::suspend" << cpu_id() << endl;
+    kout << "Thread::suspend " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::suspend(this=" << this << ")" << endl;
@@ -204,7 +204,7 @@ void Thread::suspend()
 void Thread::resume()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::resume" << cpu_id() << endl;
+    kout << "Thread::resume " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::resume(this=" << this << ")" << endl;
@@ -225,7 +225,7 @@ void Thread::resume()
 void Thread::yield()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::yield" << cpu_id() << endl;
+    kout << "Thread::yield " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::yield(running=" << running() << ")" << endl;
@@ -242,7 +242,7 @@ void Thread::yield()
 void Thread::exit(int status)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::exit" << cpu_id() << endl;
+    kout << "Thread::exit " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::exit(status=" << status << ") [running=" << running() << "]" << endl;
@@ -272,7 +272,7 @@ void Thread::exit(int status)
 void Thread::sleep(Queue * q)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::sleep" << cpu_id() << endl;
+    kout << "Thread::sleep " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::sleep(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -292,7 +292,7 @@ void Thread::sleep(Queue * q)
 void Thread::wakeup(Queue * q)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::wakeup" << cpu_id() << endl;
+    kout << "Thread::wakeup " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::wakeup(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -312,7 +312,7 @@ void Thread::wakeup(Queue * q)
 void Thread::wakeup_all(Queue * q)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::wakeup_all" << cpu_id() << endl;
+    kout << "Thread::wakeup_all " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::wakeup_all(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -334,7 +334,7 @@ void Thread::wakeup_all(Queue * q)
 void Thread::prioritize(Queue * q)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::prioritize" << cpu_id() << endl;
+    kout << "Thread::prioritize " << cpu_id() << endl;
     assert(locked()); // locking handled by caller
 
     if(priority_inversion_protocol == Traits<Build>::NONE)
@@ -365,7 +365,7 @@ void Thread::prioritize(Queue * q)
 void Thread::deprioritize(Queue * q)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::deprioritize" << cpu_id() << endl;
+    kout << "Thread::deprioritize " << cpu_id() << endl;
     assert(locked()); // locking handled by caller
 
     if(priority_inversion_protocol == Traits<Build>::NONE)
@@ -395,7 +395,7 @@ void Thread::deprioritize(Queue * q)
 void Thread::reschedule()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::reschedule" << cpu_id() << endl;
+    kout << "Thread::reschedule " << cpu_id() << endl;
     if(!Criterion::timed || Traits<Thread>::hysterically_debugged)
         db<Thread>(TRC) << "Thread::reschedule()" << endl;
 
@@ -411,7 +411,7 @@ void Thread::reschedule()
 void Thread::time_slicer(IC::Interrupt_Id i)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::time_slicer" << cpu_id() << endl;
+    kout << "Thread::time_slicer " << cpu_id() << endl;
     lock();
     reschedule();
     unlock();
@@ -421,7 +421,7 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::dispatch" << cpu_id() << endl;
+    kout << "Thread::dispatch " << cpu_id() << endl;
     // "next" is not in the scheduler's queue anymore. It's already "chosen"
 
     if(charge && Criterion::timed)
@@ -466,7 +466,7 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 int Thread::idle()
 {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::idle" << cpu_id() << endl;
+    kout << "Thread::idle " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::idle(cpu=" << CPU::id() << ",this=" << running() << ")" << endl;
 
     while(_thread_count > CPU::cores()) { // someone else besides idles
@@ -501,7 +501,7 @@ __BEGIN_UTIL
 
 volatile unsigned long Thread_Identifier::me() {
     // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread_Identifier::me" << Thread::self() << endl;
+    kout << "Thread_Identifier::me " << Thread::self() << endl;
     auto current_thread = Thread::self();
     return reinterpret_cast<volatile unsigned long>(current_thread); 
 }
