@@ -89,7 +89,7 @@ public:
 
     static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
 
-    static unsigned int cpu_id() { CPU::id() + 1; } // For identifier the cpu id in tests
+    static unsigned int cpu_id() { return CPU::id() + 1; } // For identifier the cpu id in tests
 
     static void yield();
     static void exit(int status = 0);
