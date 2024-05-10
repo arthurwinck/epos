@@ -302,6 +302,40 @@ public:
         return old + 1;
     }
 
+    // template<typename T>
+    // static T tsl(volatile T & lock) {
+    //     register T old;
+    //     register T one = 1;
+    //     if(sizeof(T) == sizeof(Reg64))
+    //         ASM("1: amoswap.d %0, %2, (%1)    \n"
+    //             "   bnez    %0, 1b            \n" : "=&r"(old) : "r"(&lock), "r"(one) : "cc", "memory");
+    //     else
+    //         ASM("1: amoswap.w %0, %2, (%1)    \n"
+    //             "   bnez    %0, 1b            \n" : "=&r"(old) : "r"(&lock), "r"(one) : "cc", "memory");
+    //     return old;
+    // }
+
+    // template<typename T>
+    // static T finc(volatile T & value) {
+    //     register T old;
+    //     if(sizeof(T) == sizeof(Reg64))
+    //         ASM("amoadd.d %0, %1, (%2)" : "=&r"(old), "+r"(value) : "r"(&value) : "memory");
+    //     else
+    //         ASM("amoadd.w %0, %1, (%2)" : "=&r"(old), "+r"(value) : "r"(&value) : "memory");
+    //     return old;
+    // }
+
+    // template<typename T>
+    // static T fdec(volatile T & value) {
+    //     register T old;
+    //     register T neg_one = -1;
+    //     if(sizeof(T) == sizeof(Reg64))
+    //         ASM("amoadd.d %0, %2, (%1)" : "=&r"(old) : "r"(&value), "r"(neg_one) : "memory");
+    //     else
+    //         ASM("amoadd.w %0, %2, (%1)" : "=&r"(old) : "r"(&value), "r"(neg_one) : "memory");
+    //     return old;
+    // }
+
     template <typename T>
     static T cas(volatile T & value, T compare, T replacement) {
         register T old;
