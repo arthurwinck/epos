@@ -15,16 +15,21 @@ void Thread::init()
 {
     db<Init, Thread>(TRC) << "Thread::init()" << endl;
 
+    // Does every core need to create a Criterion?
     Criterion::init();
 
-    typedef int (Main)();
+    if (CPU::id() == CPU::BSP) {
 
-    // If EPOS is a library, then adjust the application entry point to __epos_app_entry, which will directly call main().
-    // In this case, _init will have already been called, before Init_Application to construct MAIN's global objects.
-    Main * main = reinterpret_cast<Main *>(__epos_app_entry);
+        typedef int (Main)();
 
-    new (SYSTEM) Task(main);
+        // If EPOS is a library, then adjust the application entry point to __epos_app_entry, which will directly call main().
+        // In this case, _init will have already been called, before Init_Application to construct MAIN's global objects.
+        Main * main = reinterpret_cast<Main *>(__epos_app_entry);
 
+        new (SYSTEM) Task(main);
+    }
+    
+    // We need to create a IDLE for everyone. So this is executed by every core
     // Idle thread creation does not cause rescheduling (see Thread::constructor_epilogue)
     new (SYSTEM) Thread(Thread::Configuration(Thread::READY, Thread::IDLE), &Thread::idle);
 
@@ -43,7 +48,9 @@ void Thread::init()
     // No more interrupts until we reach init_end
     CPU::int_disable();
 
+    // VERY IMPORTANT!! -- We are switching to user threads right now, every core needs to be synchronized for this to happen
     // Before thread init, we use the CPU ids to retrieve the running thread. When threads are initialized, we switch to using thread ids
+    CPU::smp_barrier();
     _not_booting = true;
 }
 

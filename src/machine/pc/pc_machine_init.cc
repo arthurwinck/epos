@@ -5,8 +5,11 @@
 __BEGIN_SYS
 
 void Machine::pre_init(System_Info * si)
-{
-    Display::init();
+{   
+    // When executing tests that require Display, we would only be able to see 
+    // something that makes sense if only one processor uses it -- Could this be a problem for debugging such tests?
+    if (CPU::id() == CPU::BSP)
+        Display::init();
 
     db<Init, Machine>(TRC) << "Machine::pre_init()" << endl;
 }
