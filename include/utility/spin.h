@@ -10,7 +10,7 @@ __BEGIN_UTIL
 // Wrapper for the Thread::self() to identifier _owner in Spin
 class Thread_Identifier {
 public:
-    static volatile unsigned long identifier();
+    static volatile unsigned long me();
 };
 
 // Recursive Spin Lock
@@ -20,7 +20,7 @@ public:
     Spin(): _level(0), _owner(0) {}
 
     void acquire() {
-        unsigned long me = Thread_Identifier::identifier();
+        unsigned long me = Thread_Identifier::me();
 
         while(CPU::cas(_owner, 0UL, me) != me);
         _level++;

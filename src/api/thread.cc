@@ -454,9 +454,8 @@ __END_SYS
 // Wrapper for the Thread::self() to identifier _owner in Spin
 __BEGIN_UTIL
 
-volatile unsigned long Thread_Identifier::identifier() {
+volatile unsigned long Thread_Identifier::me() {
     auto current_thread = Thread::self();
-    kout << "\n\n This_Thread identifier foi chamado " << current_thread << endl;
     return reinterpret_cast<volatile unsigned long>(current_thread); 
 }
 
