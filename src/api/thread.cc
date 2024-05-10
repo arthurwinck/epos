@@ -4,6 +4,8 @@
 #include <system.h>
 #include <process.h>
 
+extern "C" { volatile unsigned long _running() __attribute__ ((alias ("_ZN4EPOS1S6Thread4selfEv"))); }
+
 __BEGIN_SYS
 
 extern OStream kout;
@@ -494,16 +496,8 @@ int Thread::idle()
     return 0;
 }
 
-__END_SYS
-
-// Wrapper for the Thread::self() to identifier _owner in Spin
-__BEGIN_UTIL
-
-volatile unsigned long Thread_Identifier::me() {
-    // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread_Identifier::me " << Thread::self() << endl;
-    auto current_thread = Thread::self();
-    return reinterpret_cast<volatile unsigned long>(current_thread); 
+Thread * volatile Thread::self() {
+    return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1);
 }
 
-__END_UTIL
+__END_SYS

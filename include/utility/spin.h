@@ -5,13 +5,9 @@
 
 #include <architecture.h>
 
-__BEGIN_UTIL
+extern "C" { volatile unsigned long _running(); }
 
-// Wrapper for the Thread::self() to identifier _owner in Spin
-class Thread_Identifier {
-public:
-    static volatile unsigned long me();
-};
+__BEGIN_UTIL
 
 // Recursive Spin Lock
 class Spin
@@ -20,7 +16,8 @@ public:
     Spin(): _level(0), _owner(0) {}
 
     void acquire() {
-        unsigned long me = Thread_Identifier::me();
+        db<Spin>(WRN) << "ESTOU USANDO RUNNING UAU ELE LEU O MANUAL" << endl;
+        unsigned long me = _running();
 
         while(CPU::cas(_owner, 0UL, me) != me);
         _level++;

@@ -87,7 +87,7 @@ public:
     void suspend();
     void resume();
 
-    static Thread * volatile self() { return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1); }
+    static Thread * volatile self();
 
     static unsigned int cpu_id() { return CPU::id() + 1; } // For identifier the cpu id in tests
 
