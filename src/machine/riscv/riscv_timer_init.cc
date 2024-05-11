@@ -12,7 +12,13 @@ void Timer::init()
 
     assert(CPU::int_disabled());
 
-    IC::int_vector(IC::INT_SYS_TIMER, int_handler);
+    // Only initialized once by boostrap processor
+    if (CPU::id() == CPU::BSP)
+        IC::int_vector(IC::INT_SYS_TIMER, int_handler);
+
+    // We need to synchronize here so timer interruptions are enabled for
+    // every core after the int_handler for alarm has been created
+    CPU::smp_barrier();
 
     reset();
     IC::enable(IC::INT_SYS_TIMER);

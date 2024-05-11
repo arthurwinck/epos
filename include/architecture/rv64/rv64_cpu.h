@@ -15,6 +15,9 @@ private:
     static const bool supervisor = Traits<Machine>::supervisor;
 
 public:
+    // Boostrap Setup Processor
+    static const bool BSP = Traits<Machine>::BSP;
+    
     // CPU Native Data Types
     using CPU_Common::Reg8;
     using CPU_Common::Reg16;
@@ -228,8 +231,14 @@ public:
     static Log_Addr fr() { Reg r; ASM("mv %0, a0" :  "=r"(r)); return r; }
     static void fr(Reg r) {       ASM("mv a0, %0" : : "r"(r) :); }
 
+    // Need to decrement one from the id so barriers can work normally (ignore the first core)
+    // static unsigned int id() { return supervisor ? tp() : mhartid() - 1; }
+    // quando rodado com mhartid() -1 da problema 
     static unsigned int id() { return supervisor ? tp() : mhartid(); }
     static unsigned int cores() { return 1; }
+
+    // Lets use the smp_barrier of CPU common with the finc function from rv cpu to create the barrier
+    static void smp_barrier(unsigned long cores = CPU::cores()) { CPU_Common::smp_barrier<&finc>(cores, id()); }
 
     using CPU_Common::clock;
     using CPU_Common::min_clock;
@@ -248,68 +257,103 @@ public:
 
     static void switch_context(Context ** o, Context * n) __attribute__ ((naked));
 
+    // template<typename T>
+    // static T tsl(volatile T & lock) {
+    //     register T old;
+    //     register T one = 1;
+    //     if(sizeof(T) == sizeof(Reg64))
+    //         ASM("1: lr.d    %0, (%1)        \n"
+    //             "   sc.d    t3, %2, (%1)    \n"
+    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
+    //     else
+    //         ASM("1: lr.w    %0, (%1)        \n"
+    //             "   sc.w    t3, %2, (%1)    \n"
+    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
+    //     return old;
+    // }
+
+    // template<typename T>
+    // static T finc(volatile T & value) {
+    //     register T old;
+    //     if(sizeof(T) == sizeof(Reg64))
+    //         ASM("1: lr.d    %0, (%1)        \n"
+    //             "   addi    %0, %0, 1       \n"
+    //             "   sc.d    t3, %0, (%1)    \n"
+    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+    //     else
+    //         ASM("1: lr.w    %0, (%1)        \n"
+    //             "   addi    %0, %0, 1       \n"
+    //             "   sc.w    t3, %0, (%1)    \n"
+    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+    //     return old - 1;
+    // }
+
+    // template<typename T>
+    // static T fdec(volatile T & value) {
+    //     register T old;
+    //     if(sizeof(T) == sizeof(Reg64))
+    //         ASM("1: lr.d    %0, (%1)        \n"
+    //             "   addi    %0, %0, -1      \n"
+    //             "   sc.d    t3, %0, (%1)    \n"
+    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+    //     else
+    //         ASM("1: lr.w    %0, (%1)        \n"
+    //             "   addi    %0, %0, -1      \n"
+    //             "   sc.w    t3, %0, (%1)    \n"
+    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+    //     return old + 1;
+    // }
+
     template<typename T>
     static T tsl(volatile T & lock) {
         register T old;
         register T one = 1;
         if(sizeof(T) == sizeof(Reg64))
-            ASM("1: lr.d    %0, (%1)        \n"
-                "   sc.d    t3, %2, (%1)    \n"
-                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
+            ASM("1: amoswap.d %0, %2, (%1)    \n"
+                "   bnez    %0, 1b            \n" : "=&r"(old) : "r"(&lock), "r"(one) : "cc", "memory");
         else
-            ASM("1: lr.w    %0, (%1)        \n"
-                "   sc.w    t3, %2, (%1)    \n"
-                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
+            ASM("1: amoswap.w %0, %2, (%1)    \n"
+                "   bnez    %0, 1b            \n" : "=&r"(old) : "r"(&lock), "r"(one) : "cc", "memory");
         return old;
     }
 
     template<typename T>
     static T finc(volatile T & value) {
         register T old;
+        register T one = 1;
         if(sizeof(T) == sizeof(Reg64))
-            ASM("1: lr.d    %0, (%1)        \n"
-                "   addi    %0, %0, 1       \n"
-                "   sc.d    t3, %0, (%1)    \n"
-                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+            ASM("amoadd.d %0, %1, (%2)" : "=&r"(old), "+r"(one) : "r"(&value) : "memory");
         else
-            ASM("1: lr.w    %0, (%1)        \n"
-                "   addi    %0, %0, 1       \n"
-                "   sc.w    t3, %0, (%1)    \n"
-                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
-        return old - 1;
+            ASM("amoadd.w %0, %1, (%2)" : "=&r"(old), "+r"(one) : "r"(&value) : "memory");
+        return old;
     }
 
     template<typename T>
     static T fdec(volatile T & value) {
         register T old;
+        register T neg_one = -1;
         if(sizeof(T) == sizeof(Reg64))
-            ASM("1: lr.d    %0, (%1)        \n"
-                "   addi    %0, %0, -1      \n"
-                "   sc.d    t3, %0, (%1)    \n"
-                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
+            ASM("amoadd.d %0, %2, (%1)" : "=&r"(old) : "r"(&value), "r"(neg_one) : "memory");
         else
-            ASM("1: lr.w    %0, (%1)        \n"
-                "   addi    %0, %0, -1      \n"
-                "   sc.w    t3, %0, (%1)    \n"
-                "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
-        return old + 1;
+            ASM("amoadd.w %0, %2, (%1)" : "=&r"(old) : "r"(&value), "r"(neg_one) : "memory");
+        return old;
     }
 
     template <typename T>
     static T cas(volatile T & value, T compare, T replacement) {
         register T old;
-        if(sizeof(T) == sizeof(Reg64))
-            ASM("1: lr.d    %0, (%1)        \n"
-                "   bne     %0, %2, 2f      \n"
-                "   sc.d    t3, %3, (%1)    \n"
-                "   bnez    t3, 1b          \n"
-                "2:                         \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
+        if (sizeof(T) == sizeof(Reg64))
+            ASM("1: amoswap.d %0, %3, (%1)   \n"
+                "   bne     %0, %2, 2f       \n"
+                "   amoswap.d t3, %3, (%1)   \n"
+                "   bnez    t3, 1b           \n"
+                "2:                          \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
         else
-            ASM("1: lr.w    %0, (%1)        \n"
-                "   bne     %0, %2, 2f      \n"
-                "   sc.w    t3, %3, (%1)    \n"
-                "   bnez    t3, 1b          \n"
-                "2:                         \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
+            ASM("1: amoswap.w %0, %3, (%1)   \n"
+                "   bne     %0, %2, 2f       \n"
+                "   amoswap.w t3, %3, (%1)   \n"
+                "   bnez    t3, 1b           \n"
+                "2:                          \n" : "=&r"(old) : "r"(&value), "r"(compare), "r"(replacement) : "t3", "cc", "memory");
         return old;
     }
 

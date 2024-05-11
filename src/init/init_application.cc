@@ -19,6 +19,13 @@ public:
     Init_Application() {
         db<Init>(TRC) << "Init_Application()" << endl;
 
+        // Only BSP runs init_application. So we synchronize everyone and let BSP do its thing
+        CPU::smp_barrier();
+        if(CPU::id() != CPU::BSP) {
+            CPU::smp_barrier();
+            return;
+        }
+
         // Initialize Application's heap
         db<Init>(INF) << "Initializing application's heap: ";
         if(Traits<System>::multiheap) { // heap in data segment arranged by SETUP

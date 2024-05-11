@@ -4,17 +4,22 @@
 #include <system.h>
 #include <process.h>
 
+extern "C" { volatile unsigned long _running() __attribute__ ((alias ("_ZN4EPOS1S6Thread4selfEv"))); }
+
 __BEGIN_SYS
 
 extern OStream kout;
 
+bool Thread::_not_booting;
 volatile unsigned int Thread::_thread_count;
 Scheduler_Timer * Thread::_timer;
 Scheduler<Thread> Thread::_scheduler;
-
+Spin Thread::_spin;
 
 void Thread::constructor_prologue(unsigned int stack_size)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::constructor_prologue " << cpu_id() << endl;
     lock();
 
     _thread_count++;
@@ -26,6 +31,8 @@ void Thread::constructor_prologue(unsigned int stack_size)
 
 void Thread::constructor_epilogue(Log_Addr entry, unsigned int stack_size)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::constructor_epilogue " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread(entry=" << entry
                     << ",state=" << _state
                     << ",priority=" << _link.rank()
@@ -53,6 +60,8 @@ void Thread::constructor_epilogue(Log_Addr entry, unsigned int stack_size)
 
 Thread::~Thread()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::~Thread " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "~Thread(this=" << this
@@ -101,6 +110,8 @@ Thread::~Thread()
 
 void Thread::priority(Criterion c)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::priority " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::priority(this=" << this << ",prio=" << c << ")" << endl;
@@ -121,6 +132,8 @@ void Thread::priority(Criterion c)
 
 int Thread::join()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::join " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::join(this=" << this << ",state=" << _state << ")" << endl;
@@ -151,6 +164,8 @@ int Thread::join()
 
 void Thread::pass()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::pass " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::pass(this=" << this << ")" << endl;
@@ -169,6 +184,8 @@ void Thread::pass()
 
 void Thread::suspend()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::suspend " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::suspend(this=" << this << ")" << endl;
@@ -188,6 +205,8 @@ void Thread::suspend()
 
 void Thread::resume()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::resume " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::resume(this=" << this << ")" << endl;
@@ -207,6 +226,8 @@ void Thread::resume()
 
 void Thread::yield()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::yield " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::yield(running=" << running() << ")" << endl;
@@ -222,6 +243,8 @@ void Thread::yield()
 
 void Thread::exit(int status)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::exit " << cpu_id() << endl;
     lock();
 
     db<Thread>(TRC) << "Thread::exit(status=" << status << ") [running=" << running() << "]" << endl;
@@ -250,6 +273,8 @@ void Thread::exit(int status)
 
 void Thread::sleep(Queue * q)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::sleep " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::sleep(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -268,6 +293,8 @@ void Thread::sleep(Queue * q)
 
 void Thread::wakeup(Queue * q)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::wakeup " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::wakeup(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -286,6 +313,8 @@ void Thread::wakeup(Queue * q)
 
 void Thread::wakeup_all(Queue * q)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::wakeup_all " << cpu_id() << endl;
     db<Thread>(TRC) << "Thread::wakeup_all(running=" << running() << ",q=" << q << ")" << endl;
 
     assert(locked()); // locking handled by caller
@@ -306,6 +335,8 @@ void Thread::wakeup_all(Queue * q)
 
 void Thread::prioritize(Queue * q)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::prioritize " << cpu_id() << endl;
     assert(locked()); // locking handled by caller
 
     if(priority_inversion_protocol == Traits<Build>::NONE)
@@ -335,6 +366,8 @@ void Thread::prioritize(Queue * q)
 
 void Thread::deprioritize(Queue * q)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::deprioritize " << cpu_id() << endl;
     assert(locked()); // locking handled by caller
 
     if(priority_inversion_protocol == Traits<Build>::NONE)
@@ -363,6 +396,8 @@ void Thread::deprioritize(Queue * q)
 
 void Thread::reschedule()
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::reschedule " << cpu_id() << endl;
     if(!Criterion::timed || Traits<Thread>::hysterically_debugged)
         db<Thread>(TRC) << "Thread::reschedule()" << endl;
 
@@ -377,6 +412,8 @@ void Thread::reschedule()
 
 void Thread::time_slicer(IC::Interrupt_Id i)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::time_slicer " << cpu_id() << endl;
     lock();
     reschedule();
     unlock();
@@ -385,6 +422,8 @@ void Thread::time_slicer(IC::Interrupt_Id i)
 
 void Thread::dispatch(Thread * prev, Thread * next, bool charge)
 {
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::dispatch " << cpu_id() << endl;
     // "next" is not in the scheduler's queue anymore. It's already "chosen"
 
     if(charge && Criterion::timed)
@@ -409,36 +448,56 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
         }
         db<Thread>(INF) << "Thread::dispatch:next={" << next << ",ctx=" << *next->_context << "}" << endl;
 
+        // TODO: ESTUDAR SE REALMENTE PRECISA DISSO AQUI
+        if(multi_processing)
+            _spin.release();
+
         // The non-volatile pointer to volatile pointer to a non-volatile context is correct
         // and necessary because of context switches, but here, we are locked() and
         // passing the volatile to switch_constext forces it to push prev onto the stack,
         // disrupting the context (it doesn't make a difference for Intel, which already saves
         // parameters on the stack anyway).
         CPU::switch_context(const_cast<Context **>(&prev->_context), next->_context);
+        // TODO: ESTUDAR SE REALMENTE PRECISA DISSO AQUI
+        if(multi_processing)
+            _spin.acquire();
     }
 }
 
 
 int Thread::idle()
 {
-    db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
+    // TODO: SAIDAS DE DEBUG REMOVER
+    kout << "Thread::idle " << cpu_id() << endl;
+    db<Thread>(TRC) << "Thread::idle(cpu=" << CPU::id() << ",this=" << running() << ")" << endl;
 
-    while(_thread_count > 1) { // someone else besides idle
-        if(Traits<Thread>::trace_idle)
-            db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
-
+    while(_thread_count > CPU::cores()) { // someone else besides idles
         CPU::int_enable();
         CPU::halt();
 
-        if(!preemptive)
+        // if(!preemptive) <--- ANTES TINHA ISSO AQUI
+        //     yield();
+        if(_scheduler.schedulables() > 0) // a thread might have been woken up by another CPU
             yield();
     }
 
     kout << "\n\n*** The last thread under control of EPOS has finished." << endl;
     kout << "*** EPOS is shutting down!" << endl;
-    Machine::reboot();
+    // Machine::reboot();
+    CPU::int_disable();
+    if(CPU::id() == CPU::BSP) {
+        db<Thread>(WRN) << "Rebooting the machine ..." << endl;
+        Machine::reboot();
+    }
 
+    // precisa disso?
+    for(;;);
+    
     return 0;
+}
+
+Thread * volatile Thread::self() {
+    return _not_booting ? running() : reinterpret_cast<Thread * volatile>(CPU::id() + 1);
 }
 
 __END_SYS

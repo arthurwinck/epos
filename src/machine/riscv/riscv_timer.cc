@@ -9,13 +9,18 @@ Timer * Timer::_channels[CHANNELS];
 
 void Timer::int_handler(Interrupt_Id i)
 {
-    if(_channels[ALARM] && (--_channels[ALARM]->_current <= 0)) {
-        _channels[ALARM]->_current = _channels[ALARM]->_initial;
+    // TODO: There are alarm timer interruptions and scheduler timer interruptions. Why they are treated differently?
+
+    // Only one processor (BSP) handles alarm timer interruptions
+    // TODO: Study why this would not happen 
+    if((CPU::id() == CPU::BSP) && _channels[ALARM] && (--_channels[ALARM]->_current[CPU::BSP] <= 0)) {
+        _channels[ALARM] ->_current[CPU::BSP] = _channels[ALARM]->_initial;
         _channels[ALARM]->_handler(i);
     }
 
-    if(_channels[SCHEDULER] && (--_channels[SCHEDULER]->_current <= 0)) {
-        _channels[SCHEDULER]->_current = _channels[SCHEDULER]->_initial;
+    // Scheduler timers now are handled by the core they are in
+    if(_channels[SCHEDULER] && (--_channels[SCHEDULER]->_current[CPU::id()] <= 0)) {
+        _channels[SCHEDULER]->_current[CPU::id()] = _channels[SCHEDULER]->_initial;
         _channels[SCHEDULER]->_handler(i);
     }
 }

@@ -70,8 +70,10 @@ private:
 private:
     System_Info * si;
     MMU mmu;
+    static volatile bool _paging_ready;
 };
 
+volatile bool Setup::_paging_ready = false;
 
 Setup::Setup()
 {
@@ -87,19 +89,38 @@ Setup::Setup()
     db<Setup>(TRC) << "Setup(si=" << reinterpret_cast<void *>(si) << ",sp=" << CPU::sp() << ")" << endl;
     db<Setup>(INF) << "Setup:si=" << *si << endl;
 
-    // Print basic facts about this EPOS instance
-    say_hi();
+    // Synchronize Start of Setup
+    CPU::smp_barrier();
 
-    if(Traits<Machine>::supervisor) {
-        // Configure a flat memory model for the single task in the system
-        setup_flat_paging();
+    if (CPU::id() == CPU::BSP) {
+        
+        // Print basic facts about this EPOS instance
+        say_hi();
 
-        // Relocate the machine to supervisor interrupt forwarder
-        setup_m2s();
+        // We maintain the code only executed for the supervisor mode inside the boostrap cpu
+        if(Traits<Machine>::supervisor) {
+            // Configure a flat memory model for the single task in the system
+            setup_flat_paging();
+
+            // Relocate the machine to supervisor interrupt forwarder
+            setup_m2s();
+        }
+
+        // Paging is done, tell others cores they can enable it
+        _paging_ready = true;
+    }
+
+    if (Traits<Machine>::supervisor) {
+        // One writer and multiple readers, maybe a good place to avoid barrier!
+        // if (CPU::id() != 0)
+        //     while(!_paging_ready);
 
         // Enable paging
         enable_paging();
     }
+
+    // Synchronize End of Setup
+    CPU::smp_barrier();
 
     // SETUP ends here, so let's transfer control to the next stage (INIT or APP)
     call_next();
@@ -190,6 +211,7 @@ void Setup::call_next()
     db<Setup>(INF) << "SETUP ends here!" << endl;
 
     // Call the next stage
+
     static_cast<void (*)()>(_start)();
 
     // SETUP is now part of the free memory and this point should never be reached, but, just in case ... :-)
@@ -210,8 +232,8 @@ void _entry() // machine mode
     CPU::mstatusc(CPU::MIE);                            // disable interrupts (they will be reenabled at Init_End)
 
     CPU::tp(CPU::mhartid() - 1);                        // tp will be CPU::id() for supervisor mode; we won't count core 0, which is an heterogeneous E51
-    CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP
-
+    CPU::sp(Memory_Map::BOOT_STACK + Traits<Machine>::STACK_SIZE * CPU::id() - sizeof(long)); // set the stack pointer, thus creating a stack for SETUP - Adjusted for multicores
+    
     Machine::clear_bss();
 
     if(Traits<Machine>::supervisor) {
@@ -307,4 +329,3 @@ if(Traits<CPU>::WORD_SIZE == 32) {
     ASM("       csrr     sp, mscratch           \n"
         "       mret                            \n");
 }
-

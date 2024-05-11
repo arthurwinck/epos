@@ -10,7 +10,6 @@
 #include <scheduler.h>
 
 extern "C" { void __exit(); }
-
 __BEGIN_SYS
 
 class Thread
@@ -23,6 +22,7 @@ class Thread
     friend class System;                // for init()
 
 protected:
+    static const bool multi_processing = Traits<Thread>::multi_processing;
     static const bool preemptive = Traits<Thread>::Criterion::preemptive;
     static const int priority_inversion_protocol = Traits<Thread>::priority_inversion_protocol;
     static const unsigned int QUANTUM = Traits<Thread>::QUANTUM;
@@ -87,7 +87,10 @@ public:
     void suspend();
     void resume();
 
-    static Thread * volatile self() { return running(); }
+    static Thread * volatile self();
+
+    static unsigned int cpu_id() { return CPU::id(); } // For identifier the cpu id in tests
+
     static void yield();
     static void exit(int status = 0);
 
@@ -99,9 +102,21 @@ protected:
 
     static Thread * volatile running() { return _scheduler.chosen(); }
 
-    static void lock() { CPU::int_disable(); }
-    static void unlock() { CPU::int_enable(); }
-    static bool locked() { return CPU::int_disabled(); }
+    static void lock(Spin * lock = &_spin) {
+        CPU::int_disable();
+        if(multi_processing)
+            lock->acquire();
+    }
+
+    static void unlock(Spin * lock = &_spin) {
+        if(multi_processing)
+            lock->release();
+        // TODO: NOT BOOTING PQ?
+        if(_not_booting)
+            CPU::int_enable();
+    }
+
+    static volatile bool locked() { return (multi_processing) ? _spin.taken() : CPU::int_disabled(); }
 
     static void sleep(Queue * queue);
     static void wakeup(Queue * queue);
@@ -137,9 +152,12 @@ protected:
     Thread * volatile _joining;
     Queue::Element _link;
 
+    // Em Thread::self escolhemos caso estivermos bootando vamos escolher o CPU, caso já tivermos as threads prontas buscamos a thread
+    static bool _not_booting;
     static volatile unsigned int _thread_count;
     static Scheduler_Timer * _timer;
     static Scheduler<Thread> _scheduler;
+    static Spin _spin;
 };
 
 

@@ -16,13 +16,22 @@ public:
     Init_End() {
         db<Init>(TRC) << "Init_End()" << endl;
 
+        // We need to synchronize the creation of the main thread of all the cores
+        CPU::smp_barrier();
+
         if(!Traits<System>::multithread) {
             CPU::int_enable();
             return;
         }
 
-        if(Memory_Map::BOOT_STACK != Memory_Map::NOT_USED)
+        // Ony boostrap CPU cleans temporary boot stack
+        if(CPU::id() == CPU::BSP && Memory_Map::BOOT_STACK != Memory_Map::NOT_USED)
             MMU::free(Memory_Map::BOOT_STACK, MMU::pages(Traits<Machine>::STACK_SIZE));
+
+
+        // After this barrier, we can now assure temporary boot memory has been cleaned
+        CPU::smp_barrier();
+
 
         db<Init>(INF) << "INIT ends here!" << endl;
 
@@ -32,6 +41,11 @@ public:
         Thread * first = Thread::self();
 
         db<Init, Thread>(INF) << "Dispatching the first thread: " << first << endl;
+
+        // We need to lastly syncrhonize the end of the main thread creation
+        // and we need to be sure that all the cores are here after the temporary stack is freed
+        // After this barrier we can now safely continue to user threads
+        CPU::smp_barrier();
 
         // Interrupts have been disabled at Thread::init() and will be reenabled by CPU::Context::load()
         // but we first reset the timer to avoid getting a time interrupt during load()

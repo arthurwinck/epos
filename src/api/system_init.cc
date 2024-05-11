@@ -8,7 +8,8 @@ __BEGIN_SYS
 
 void System::init()
 {
-    if(Traits<Alarm>::enabled)
+    //Every core executes init, in the alarms case, it is initialized only once
+    if(CPU::id() == CPU::BSP && Traits<Alarm>::enabled)
         Alarm::init();
 
     if(Traits<Thread>::enabled)
