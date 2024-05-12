@@ -460,39 +460,32 @@ void Thread::dispatch(Thread * prev, Thread * next, bool charge)
         CPU::switch_context(const_cast<Context **>(&prev->_context), next->_context);
         // TODO: ESTUDAR SE REALMENTE PRECISA DISSO AQUI
         if(multi_processing)
-            _spin.acquire();
+            // lock here also calls int_disable
+            lock();
     }
 }
 
 
 int Thread::idle()
 {
-    // TODO: SAIDAS DE DEBUG REMOVER
-    kout << "Thread::idle " << cpu_id() << endl;
-    db<Thread>(TRC) << "Thread::idle(cpu=" << CPU::id() << ",this=" << running() << ")" << endl;
+    db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
 
-    while(_thread_count > CPU::cores()) { // someone else besides idles
+    while(_thread_count > Traits<System>::CPUS) { // someone else besides idle
+        if(Traits<Thread>::trace_idle)
+            db<Thread>(TRC) << "Thread::idle(this=" << running() << ")" << endl;
+
         CPU::int_enable();
         CPU::halt();
 
-        // if(!preemptive) <--- ANTES TINHA ISSO AQUI
-        //     yield();
-        if(_scheduler.schedulables() > 0) // a thread might have been woken up by another CPU
+        if(!preemptive)
             yield();
     }
 
     kout << "\n\n*** The last thread under control of EPOS has finished." << endl;
     kout << "*** EPOS is shutting down!" << endl;
-    // Machine::reboot();
     CPU::int_disable();
-    if(CPU::id() == CPU::BSP) {
-        db<Thread>(WRN) << "Rebooting the machine ..." << endl;
-        Machine::reboot();
-    }
+    Machine::reboot();
 
-    // precisa disso?
-    for(;;);
-    
     return 0;
 }
 

@@ -255,53 +255,6 @@ public:
 
     static void switch_context(Context ** o, Context * n) __attribute__ ((naked));
 
-    // template<typename T>
-    // static T tsl(volatile T & lock) {
-    //     register T old;
-    //     register T one = 1;
-    //     if(sizeof(T) == sizeof(Reg64))
-    //         ASM("1: lr.d    %0, (%1)        \n"
-    //             "   sc.d    t3, %2, (%1)    \n"
-    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
-    //     else
-    //         ASM("1: lr.w    %0, (%1)        \n"
-    //             "   sc.w    t3, %2, (%1)    \n"
-    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&lock), "r"(one) : "t3", "cc", "memory");
-    //     return old;
-    // }
-
-    // template<typename T>
-    // static T finc(volatile T & value) {
-    //     register T old;
-    //     if(sizeof(T) == sizeof(Reg64))
-    //         ASM("1: lr.d    %0, (%1)        \n"
-    //             "   addi    %0, %0, 1       \n"
-    //             "   sc.d    t3, %0, (%1)    \n"
-    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
-    //     else
-    //         ASM("1: lr.w    %0, (%1)        \n"
-    //             "   addi    %0, %0, 1       \n"
-    //             "   sc.w    t3, %0, (%1)    \n"
-    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
-    //     return old - 1;
-    // }
-
-    // template<typename T>
-    // static T fdec(volatile T & value) {
-    //     register T old;
-    //     if(sizeof(T) == sizeof(Reg64))
-    //         ASM("1: lr.d    %0, (%1)        \n"
-    //             "   addi    %0, %0, -1      \n"
-    //             "   sc.d    t3, %0, (%1)    \n"
-    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
-    //     else
-    //         ASM("1: lr.w    %0, (%1)        \n"
-    //             "   addi    %0, %0, -1      \n"
-    //             "   sc.w    t3, %0, (%1)    \n"
-    //             "   bnez    t3, 1b          \n" : "=&r"(old) : "r"(&value) : "t3", "cc", "memory");
-    //     return old + 1;
-    // }
-
     template<typename T>
     static T tsl(volatile T & lock) {
         register T old;

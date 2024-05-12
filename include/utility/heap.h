@@ -18,6 +18,9 @@ extern "C" {
 // Heap
 class Heap: private Grouping_List<char>
 {
+private:
+    static const Spin _lock;
+
 protected:
     static const bool typed = Traits<System>::multiheap;
 

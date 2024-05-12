@@ -38,14 +38,26 @@ void IC::dispatch()
     if((id != INT_SYS_TIMER) || Traits<IC>::hysterically_debugged)
         db<IC, System>(TRC) << "IC::dispatch(i=" << id << ") [sp=" << CPU::sp() << "]" << endl;
 
-    if(id == INT_SYS_TIMER) {
-        if(supervisor)
-            CPU::ecall();   // we can't clear CPU::sipc(CPU::STI) in supervisor mode, so let's ecall int_m2s to do it for us
+    if (id == INT_RESCHEDULER) {
+        if (supervisor)                 // The sip register is a read/write register containing information on pending interrupts 
+            CPU::sipc(CPU::SSI);        // IPI EOI was already issued by _int_m2s, so we only clear SSI
         else
-            Timer::reset(); // MIP.MTI is a direct logic on (MTIME == MTIMECMP) and reseting the Timer seems to be the only way to clear it
+            IC::ipi_eoi(id & CLINT::INT_MASK);  // Interprocessor interrupt handler used by remote harts to provide machine-mode interprocessor interrupts.
+    }
+
+    // For timer interrupts we want to ecall to int_m2s if in supervisor mode or just reset the timer if in machine mode
+    if (id == INT_SYS_TIMER) {
+        if (supervisor)
+            CPU::ecall();               // we can't clear CPU::sipc(CPU::STI) in supervisor mode, so let's ecall int_m2s to do it for us
+        else
+            // This works because mtimecmp() method is using CPU::id() as the offset 
+            Timer::reset();             // MIP.MTI is a direct logic on (MTIME == MTIMECMP) and reseting the Timer seems to be the only way to clear it
     }
 
     _int_vector[id](id);
+
+    if(id >= EXCS)
+        CPU::fr(0); // tell CPU::Context::pop(true) not to increment PC since it is automatically incremented for hardware interrupts
 }
 
 void IC::int_not(Interrupt_Id id)
