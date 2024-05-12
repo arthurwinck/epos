@@ -232,7 +232,7 @@ public:
     static void fr(Reg r) {       ASM("mv a0, %0" : : "r"(r) :); }
 
     // Need to decrement one from the id so barriers can work normally (ignore the first core)
-    static unsigned int id() { return supervisor ? tp() : mhartid() - 1; }
+    static unsigned int id() { return tp(); }
     static unsigned int cores() { return Traits<Build>::CPUS; }
 
     // Lets use the smp_barrier of CPU common with the finc function from rv cpu to create the barrier

@@ -1,6 +1,8 @@
 // EPOS SETUP Binding
 
+#include <utility/spin.h>
 #include <machine.h>
+#include <process.h>
 
 __BEGIN_SYS
 
@@ -47,5 +49,10 @@ extern "C" {
         if(error)
             Machine::panic();
     }
+
+    // Utility methods for locking and unlocking heap access
+    static Spin _heap_lock;
+    void _lock_heap() { Thread::lock(&_heap_lock); }
+    void _unlock_heap() { Thread::unlock(&_heap_lock); }
 }
 

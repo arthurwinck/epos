@@ -9,7 +9,12 @@
 #include <utility/handler.h>
 #include <scheduler.h>
 
-extern "C" { void __exit(); }
+extern "C" {
+    void __exit();
+    void _lock_heap();
+    void _unlock_heap();
+}
+
 __BEGIN_SYS
 
 class Thread
@@ -20,6 +25,8 @@ class Thread
     friend class Synchronizer_Common;   // for lock() and sleep()
     friend class Alarm;                 // for lock()
     friend class System;                // for init()
+    friend void ::_lock_heap();         // for lock()
+    friend void ::_unlock_heap();       // for unlock()
 
 protected:
     static const bool multi_processing = Traits<Thread>::multi_processing;

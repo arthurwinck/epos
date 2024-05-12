@@ -45,12 +45,12 @@ public:
             db<Init>(INF) << "Initializing the machine: " << endl;
             Machine::init();
 
-            // Boostraping signaling other CPUs that the heap has been created
+            // Boostraping CPU signaling other CPUs that the heap has been created
             CPU::smp_barrier();
 
         } else {
 
-            // Waits until the bootstrap CPU signalizes "machine ready"
+            // Waits until the bootstrap CPU signals "machine ready"
             CPU::smp_barrier(); 
 
             db<Init>(INF) << "Initializing the CPU: " << endl;

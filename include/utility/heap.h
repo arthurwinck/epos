@@ -9,6 +9,12 @@
 
 __BEGIN_UTIL
 
+// Wrapper for atomic heap -- Initialized in setup binding
+extern "C" {
+    void _lock_heap();
+    void _unlock_heap();
+}
+
 // Heap
 class Heap: private Grouping_List<char>
 {
@@ -30,7 +36,29 @@ public:
         free(addr, bytes);
     }
 
+    bool empty() {
+        enter();
+        
+        bool tmp = Heap::empty();
+        
+        leave();
+        
+        return tmp;
+    }
+
+    unsigned long size() {
+        enter();
+
+        unsigned long tmp = Heap::size();
+        
+        leave();
+        
+        return tmp;
+    }
+
     void * alloc(unsigned long bytes) {
+        enter();
+
         db<Heaps>(TRC) << "Heap::alloc(this=" << this << ",bytes=" << bytes;
 
         if(!bytes)
@@ -60,10 +88,14 @@ public:
 
         db<Heaps>(TRC) << ") => " << reinterpret_cast<void *>(addr) << endl;
 
+        leave();
+
         return addr;
     }
 
     void free(void * ptr, unsigned long bytes) {
+        enter();
+        
         db<Heaps>(TRC) << "Heap::free(this=" << this << ",ptr=" << ptr << ",bytes=" << bytes << ")" << endl;
 
         if(ptr && (bytes >= sizeof(Element))) {
@@ -71,6 +103,8 @@ public:
             Element * m1, * m2;
             insert_merging(e, &m1, &m2);
         }
+
+        leave();
     }
 
     static void typed_free(void * ptr) {
@@ -88,6 +122,8 @@ public:
 
 private:
     void out_of_memory(unsigned long bytes);
+    void enter() { _lock_heap(); }
+    void leave() { _unlock_heap(); }
 };
 
 __END_UTIL
