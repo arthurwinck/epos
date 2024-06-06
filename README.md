@@ -1,3 +1,9 @@
+# This is a fork from the [EPOS original repostory](https://gitlab.lisha.ufsc.br/epos/ine5424)
+    
+### Changes
+
+- It uses the fixes from  [Eric's EPOS help repo](https://github.com/ErFer7/INE5424-help)
+
 # EPOS
 
 The [Embedded Parallel Operating System (EPOS)](https://epos.lisha.ufsc.br) project aims at automating the development of embedded systems so that developers can concentrate on what really matters: their applications. EPOS relies on the Application-Driven Embedded System Design (ADESD) method to guide the development of both software and hardware components that can be automatically adapted to fulfill the requirements of particular applications. EPOS features a set of tools to support developers in selecting, configuring, and plugging components into its application-specific framework. The combination of methodology, components, frameworks, and tools enable the automatic generation of an application-specific embedded system instances. 
